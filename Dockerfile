@@ -1,31 +1,29 @@
 FROM node:16-alpine AS builder
 
-WORKDIR /home/node/app
+WORKDIR /home/node/build
 
 COPY package.json .
 COPY package-lock.json .
-COPY webpack.config.ts .
-COPY tsconfig.json .
-
-COPY src .
 
 RUN npm ci
+
+COPY webpack.config.ts .
+COPY tsconfig.json .
+COPY src ./src
+
 RUN npm run build
 
 FROM node:16-alpine
 
-ENV NODE_ENV production
-
 WORKDIR /home/node/app
 
+COPY --from=builder /home/node/build/dist ./www
 COPY server.js .
-
-COPY --from=builder /home/node/app/dist .
-
-WORKDIR /home/node/app
 
 USER node
 
 EXPOSE 8080
+
+ENV NODE_ENV production
 
 CMD ["node","server.js"]
