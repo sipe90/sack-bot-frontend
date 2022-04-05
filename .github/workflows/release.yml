@@ -3,17 +3,19 @@ name: Release
 on:
   push:
     tags: [ 'v*' ]
+  workflow_dispatch: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v3
-      - name: Kaniko builder
+      - name: Build image from tag
+        if: ${{ github.event_name == 'push' }}
         uses: aevea/action-kaniko@v0.8.0
         with:
           image: sipe90/sack-bot-frontend
           strip_tag_prefix: v
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
