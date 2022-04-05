@@ -4,8 +4,8 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import path from 'path'
 import { Configuration, DefinePlugin } from 'webpack'
 
-const SRC_ROOT = path.resolve(__dirname, 'src', 'main', 'webapp')
-const DEST = path.resolve(__dirname, 'build', 'webapp')
+const SRC_ROOT = path.resolve(__dirname, 'src')
+const DEST = path.resolve(__dirname, 'dist')
 
 const config: Configuration = {
     entry: {
@@ -57,7 +57,7 @@ const config: Configuration = {
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'src', 'main', 'webapp')
+            '@': path.resolve(__dirname, 'src')
         },
         extensions: ['.tsx', '.ts', '.js'],
         modules: ['node_modules']

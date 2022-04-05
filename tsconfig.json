@@ -24,11 +24,8 @@
     "baseUrl": "src",
     "paths": {
       "@/*": [
-        "main/webapp/*"
-      ],
-      "test/*": [
-        "test/webapp/*"
-      ],
+        "./*"
+      ]
     },
     "esModuleInterop": true
   }
