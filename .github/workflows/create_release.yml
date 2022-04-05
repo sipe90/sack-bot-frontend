@@ -1,0 +1,46 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        default: final
+        type: choice
+        description: Release type (final or release candidate).
+        required: false
+        options:
+          - final
+          - candidate
+          - custom
+      scope:
+        default: minor
+        type: choice
+        description: Release scope (major, minor or patch)
+        required: false
+        options:
+          - major
+          - minor
+          - patch
+      version:
+        type: string
+        description: Custom release version
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Create release candidate
+        if:  ${{ github.event.inputs.type == 'candidate' }} 
+        run: npm version --preid rc prerelease -m "[npm] Release candidate %s"
+      - name: Create final release
+        if:  ${{ github.event.inputs.type == 'final' }} 
+        run: npm version ${{ github.event.inputs.scope }} -m "[npm] Release %s"
+      - name: Create custom release
+        if:  ${{ github.event.inputs.type == 'custom' }} 
+        run: npm version --allow-same-version ${{ github.event.inputs.version }} -m "[npm] Release %s"

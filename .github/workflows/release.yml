@@ -1,0 +1,19 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Kaniko builder
+        uses: aevea/action-kaniko@v0.8.0
+        with:
+          image: sipe90/sack-bot-frontend
+          strip_tag_prefix: v
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
