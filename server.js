@@ -21,8 +21,13 @@ const getMimeType = (url) => {
   return mimeTypes[ext]
 }
 
-const writeResponse = (res, data, mimeType) => {
-  res.writeHead(200, mimeType ? { 'Content-Type': mimeType } : undefined)
+const cacheHeaders = (mimeType) => ({
+  'Content-Type': mimeType || 'text/plain',
+  'Cache-Control': mimeType === 'text/html' ? 'no-cache' : 'max-age=31536000, immutable'
+})
+
+const writeResponse = (res, data, headers) => {
+  res.writeHead(200, headers)
   res.end(data)
 }
 
@@ -36,12 +41,14 @@ fs.readFile(indexFile, (err, index) => {
     fs.readFile(file, (err, data) => {
       if (err) {
         console.log(`Could not find ${file}, falling back to ${indexFile}`)
-        writeResponse(res, index, mimeTypes['.html'])
+        const headers = cacheHeaders('text/html')
+        writeResponse(res, index, headers)
         return
       }
       const mimeType = getMimeType(req.url)
+      const headers = cacheHeaders(mimeType)
       console.log(`Serving ${file} (${mimeType})`)
-      writeResponse(res, data, mimeType)
+      writeResponse(res, data, headers)
     })
   }).listen(port)
   console.log('Server listening at port ' + port)
