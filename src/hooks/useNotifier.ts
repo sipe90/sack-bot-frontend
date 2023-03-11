@@ -1,17 +1,14 @@
-import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect } from 'react'
 import { SnackbarKey, useSnackbar } from 'notistack'
+import { useRecoilState } from 'recoil'
 
-import { Notification } from '@/types'
-import { removeSnackbar } from '@/actions/snackbar'
-import { IAppState } from '@/reducers'
+import { notificationState } from '@/state/snackbar'
 
 let displayed: SnackbarKey[] = []
 
-const Notifier: React.FC = () => {
-    const dispatch = useDispatch()
-    const notifications = useSelector<IAppState, Notification[]>(store => store.snackbar.notifications)
+const useNotifier = () => {
     const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+    const [notifications, setNotifications] = useRecoilState(notificationState)
 
     const storeDisplayed = (id: SnackbarKey) => {
         displayed = [...displayed, id]
@@ -39,16 +36,14 @@ const Notifier: React.FC = () => {
                     }
                 },
                 onExited: (_event, myKey) => {
-                    dispatch(removeSnackbar(myKey))
+                    setNotifications(notifications.filter((n) => n.key !== key))
                     removeDisplayed(myKey)
                 },
             })
 
             storeDisplayed(key)
         })
-    }, [notifications, closeSnackbar, enqueueSnackbar, dispatch])
-
-    return null
+    }, [notifications, setNotifications, closeSnackbar, enqueueSnackbar])
 }
 
-export default Notifier
+export default useNotifier

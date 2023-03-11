@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import * as R from 'ramda'
 import {
     Autocomplete,
@@ -19,35 +19,34 @@ import {
     Typography
 } from '@mui/material'
 
-import { useDispatch, useSelector } from '@/util'
-import { fetchSounds, playSound, playRandomSound, playUrl } from '@/actions/sounds'
-import { IAudioFile, IDictionary } from '@/types'
-import { selectedGuildMembership } from '@/selectors/user'
-import { updateEntrySound, updateExitSound } from '@/actions/user'
+import { AudioFile, Dictionary } from '@/types'
 import Divider from '@/components/Divider'
+import useGuildState from '@/hooks/useGuildState'
+import useSoundsState from '@/hooks/useSoundsState'
+import { playRandomSoundRequest, playSoundRequest, playUrlRequest, setEntrySoundRequest, setExitSoundRequest } from '@/api'
 
 type GroupBy = 'alphabetic' | 'tag'
 
-const isSubset = R.curry((xs: any[], ys: any[]) =>
+const isSubset = R.curry((xs: unknown[], ys: unknown[]) =>
     R.all(R.includes(R.__, ys), xs))
 
-const filterSounds = (tagFilter: string[]) => (sounds: IAudioFile[]) => tagFilter.length ? sounds.filter((sound) => isSubset(tagFilter, sound.tags)) : sounds
+const filterSounds = (tagFilter: string[]) => (sounds: AudioFile[]) => tagFilter.length ? sounds.filter((sound) => isSubset(tagFilter, sound.tags)) : sounds
 
-const groupByFirstLetter = R.groupBy<IAudioFile>(
+const groupByFirstLetter = R.groupBy<AudioFile>(
     R.pipe(
         R.pathOr('', ['name', 0]),
         R.toUpper
     )
 )
 
-const groupByTags = (sounds: IAudioFile[]) => sounds.reduce<IDictionary<IAudioFile[]>>((acc, val) => {
+const groupByTags = (sounds: AudioFile[]) => sounds.reduce<Dictionary<AudioFile[]>>((acc, val) => {
     val.tags.forEach((tag) => {
         acc[tag] = R.append(val, R.propOr([], tag, acc))
     })
     return acc
 }, {})
 
-const filterAndGroup = (tagFilter: string[], groupBy: GroupBy, sounds: IAudioFile[]) => R.pipe<[IAudioFile[]], IAudioFile[], IDictionary<IAudioFile[]>>(
+const filterAndGroup = (tagFilter: string[], groupBy: GroupBy, sounds: AudioFile[]) => R.pipe<[AudioFile[]], AudioFile[], Dictionary<AudioFile[]>>(
     filterSounds(tagFilter),
     R.ifElse(
         R.always(R.equals('alphabetic', groupBy)),
@@ -56,8 +55,8 @@ const filterAndGroup = (tagFilter: string[], groupBy: GroupBy, sounds: IAudioFil
     )
 )(sounds)
 
-const getTags = R.pipe<[IAudioFile[]], string[], string[], string[]>(
-    R.chain<IAudioFile, string>(R.prop('tags')),
+const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
+    R.chain<AudioFile, string>(R.prop('tags')),
     R.uniq,
     R.invoker(0, 'sort')
 )
@@ -65,33 +64,25 @@ const getTags = R.pipe<[IAudioFile[]], string[], string[], string[]>(
 const defVolume = 75
 
 const Soundboard: React.FC = () => {
-    const selectedGuild = useSelector((state => state.user.selectedGuildId))
-    const soundsLoading = useSelector((state => state.sounds.soundsLoading))
-    const sounds = useSelector((state => state.sounds.sounds))
-    const membership = useSelector(selectedGuildMembership)
-
-    const dispatch = useDispatch()
+    const { selectedGuildId, selectedGuildMembership } = useGuildState()
+    const { sounds, soundsLoading } = useSoundsState()
 
     const [volume, setVolume] = useState<number>(defVolume)
     const [url, setUrl] = useState<string>('')
     const [tagFilter, setTagFilter] = useState<string[]>([])
     const [groupBy, setGroupBy] = useState<GroupBy>('alphabetic')
 
-    const onPlayRandomSound = useCallback(() => selectedGuild && dispatch(playRandomSound(selectedGuild, volume, tagFilter)), [selectedGuild, volume, tagFilter])
-    const onPlaySound = useCallback((sound: string) => selectedGuild && dispatch(playSound(selectedGuild, sound, volume)), [selectedGuild, volume])
-    const onPlayUrl = useCallback(() => selectedGuild && dispatch(playUrl(selectedGuild, url, volume)), [selectedGuild, url, volume])
-    const onUpdateEntrySound = useCallback((sound: string) => selectedGuild && dispatch(updateEntrySound(selectedGuild, sound)), [selectedGuild])
-    const onUpdateExitSound = useCallback((sound: string) => selectedGuild && dispatch(updateExitSound(selectedGuild, sound)), [selectedGuild])
-    const onClearEntrySound = useCallback(() => selectedGuild && dispatch(updateEntrySound(selectedGuild)), [selectedGuild])
-    const onClearExitSound = useCallback(() => selectedGuild && dispatch(updateExitSound(selectedGuild)), [selectedGuild])
-
-    useEffect(() => {
-        selectedGuild && dispatch(fetchSounds(selectedGuild))
-    }, [selectedGuild])
+    const onPlayRandomSound = useCallback(() => selectedGuildId && playRandomSoundRequest(selectedGuildId, volume, tagFilter), [selectedGuildId, volume, tagFilter])
+    const onPlaySound = useCallback((sound: string) => selectedGuildId && playSoundRequest(selectedGuildId, sound, volume), [selectedGuildId, volume])
+    const onPlayUrl = useCallback(() => selectedGuildId && playUrlRequest(selectedGuildId, url, volume), [selectedGuildId, url, volume])
+    const onUpdateEntrySound = useCallback((sound: string) => selectedGuildId && setEntrySoundRequest(selectedGuildId, sound), [selectedGuildId])
+    const onUpdateExitSound = useCallback((sound: string) => selectedGuildId && setExitSoundRequest(selectedGuildId, sound), [selectedGuildId])
+    const onClearEntrySound = useCallback(() => selectedGuildId && setEntrySoundRequest(selectedGuildId), [selectedGuildId])
+    const onClearExitSound = useCallback(() => selectedGuildId && setExitSoundRequest(selectedGuildId), [selectedGuildId])
 
     const tags = useMemo(() => getTags(sounds), [sounds])
 
-    const onTagFilterChange = (_event: React.ChangeEvent<{}>, tags: string[]) => {
+    const onTagFilterChange = (_event: React.SyntheticEvent<Element, Event>, tags: string[]) => {
         setTagFilter(tags)
     }
 
@@ -196,8 +187,8 @@ const Soundboard: React.FC = () => {
                     sounds={sounds}
                     groupBy={groupBy}
                     tagFilter={tagFilter}
-                    entrySound={membership?.entrySound || null}
-                    exitSound={membership?.exitSound || null}
+                    entrySound={selectedGuildMembership?.entrySound || null}
+                    exitSound={selectedGuildMembership?.exitSound || null}
                     onPlaySound={onPlaySound}
                     onUpdateEntrySound={onUpdateEntrySound}
                     onUpdateExitSound={onUpdateExitSound}
@@ -210,7 +201,7 @@ const Soundboard: React.FC = () => {
 }
 
 interface BoardProps {
-    sounds: IAudioFile[]
+    sounds: AudioFile[]
     groupBy: GroupBy
     tagFilter: string[]
     entrySound: string | null
@@ -222,8 +213,7 @@ interface BoardProps {
     onClearExitSound: () => void
 }
 
-const Board: React.FC<BoardProps> = React.memo((props) => {
-
+const Board: React.FC<BoardProps> = (props) => {
     const {
         sounds,
         groupBy,
@@ -316,6 +306,6 @@ const Board: React.FC<BoardProps> = React.memo((props) => {
             </Menu>
         </>
     )
-})
+}
 
 export default Soundboard

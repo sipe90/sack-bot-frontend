@@ -1,33 +1,7 @@
-import { Action } from "redux"
-import { ThunkDispatch, ThunkAction } from "redux-thunk"
-import { IAppState } from "@/reducers"
 import { OptionsObject, SnackbarKey } from 'notistack'
 
-export interface IDictionary<A> {
+export interface Dictionary<A> {
     [index: string]: A
-}
-
-export type AppAction = Action<string>
-export type AppReducer<S, A extends AppAction> = (state: S, action: A) => S
-export type AppDispatch = ThunkDispatch<IAppState, undefined, AppAction>
-
-export type Thunk<R = void, A extends Action = AppAction> = ThunkAction<R, IAppState, unknown, A>
-export type AsyncThunk<R = void, A extends Action = AppAction> = Thunk<Promise<R>, A>
-
-export type ActionGroup<T1, T2, T3, P = undefined> = RequestAction<T1> | ResolvedAction<T2, P> | RejectedAction<T3>
-
-export interface RequestAction<T> {
-    type: T
-}
-
-export interface ResolvedAction<T, P = undefined> {
-    type: T
-    payload: P
-}
-
-export interface RejectedAction<T> {
-    type: T
-    payload: Error
 }
 
 export interface Notification {
@@ -40,10 +14,10 @@ export interface Notification {
 export interface UserInfo {
     name: string
     avatarUrl?: string
-    memberships: IMembership[]
+    memberships: Membership[]
 }
 
-export interface IMembership {
+export interface Membership {
     guildId: string
     userId: string
     entrySound: string | null
@@ -54,7 +28,7 @@ export interface IMembership {
     modified: number | null
 }
 
-export interface IGuild {
+export interface Guild {
     id: string,
     name: string,
     iconUrl: string | null,
@@ -62,13 +36,13 @@ export interface IGuild {
     roles: string[]
 }
 
-export interface IGuildMember {
+export interface GuildMember {
     guildId: string
     id: string
     name: string
 }
 
-export interface IAudioFile {
+export interface AudioFile {
     name: string
     extension?: string
     size: number
@@ -80,11 +54,11 @@ export interface IAudioFile {
     modified: number | null
 }
 
-export interface IVoiceLines {
+export interface VoiceLines {
     [voice: string]: string[]
 }
 
-export interface ISettings {
+export interface Settings {
     upload: {
         sizeLimit: number
         overrideExisting: boolean

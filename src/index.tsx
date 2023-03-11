@@ -1,31 +1,16 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
-import { Provider } from 'react-redux'
+import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { applyMiddleware, compose, createStore, Middleware } from 'redux'
-import { createLogger } from 'redux-logger'
-import thunkMiddleware from 'redux-thunk'
 import { SnackbarProvider } from 'notistack'
+import { RecoilRoot } from 'recoil'
 
-import reducers from '@/reducers'
 import App from '@/components/App'
 
-const middlewares: Middleware[] = [thunkMiddleware]
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const root = createRoot(document.getElementById('root')!)
 
-if (process.env.NODE_ENV === `development`) {
-    middlewares.push(createLogger())
-}
-
-const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
-
-const store = createStore(
-    reducers,
-    composeEnhancers(
-        applyMiddleware(...middlewares))
-)
-
-ReactDOM.render(
-    <Provider store={store}>
+root.render(
+    <RecoilRoot>
         <BrowserRouter>
             <SnackbarProvider
                 maxSnack={5}
@@ -34,9 +19,10 @@ ReactDOM.render(
                     horizontal: 'left',
                 }}
             >
-                <App />
+                <React.Suspense fallback={<div>Loading...</div>}>
+                    <App />
+                </React.Suspense>
             </SnackbarProvider>
         </BrowserRouter>
-    </Provider>,
-    document.getElementById('root'),
+    </RecoilRoot>
 )

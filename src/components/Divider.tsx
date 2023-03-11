@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { PropsWithChildren } from 'react'
 import { Box } from '@mui/material'
 import { SxProps, Theme } from '@mui/material/styles'
 import { styled } from '@mui/system'
@@ -15,7 +15,7 @@ const Content = styled('span')(({ theme }) => ({
     color: 'lightgray'
 }))
 
-const Divider: React.FC<{ sx?: SxProps<Theme> }> = ({ sx, children }) => (
+const Divider: React.FC<{ sx?: SxProps<Theme> } & PropsWithChildren> = ({ sx, children }) => (
     <Box display='flex' alignItems='center' my={2} sx={sx}>
         {children ?
             <>
@@ -27,6 +27,5 @@ const Divider: React.FC<{ sx?: SxProps<Theme> }> = ({ sx, children }) => (
         }
     </Box>
 )
-
 
 export default Divider

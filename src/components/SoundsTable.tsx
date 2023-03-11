@@ -21,20 +21,20 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-import { IAudioFile, IDictionary, IGuildMember } from '@/types'
+import { AudioFile, Dictionary, GuildMember } from '@/types'
 import { DateTime } from 'luxon'
 import { Divider } from '@mui/material'
 
 
 type Order = 'asc' | 'desc'
 
-type SortProp = keyof Pick<IAudioFile, 'name' | 'extension' | 'size' | 'created' | 'createdBy' | 'modified' | 'modifiedBy'>
+type SortProp = keyof Pick<AudioFile, 'name' | 'extension' | 'size' | 'created' | 'createdBy' | 'modified' | 'modifiedBy'>
 
 const getComparator = (order: Order, orderBy: SortProp) => order === 'desc'
-    ? R.descend<IAudioFile>(R.propOr(Number.MAX_VALUE, orderBy))
-    : R.ascend<IAudioFile>(R.propOr(Number.MAX_VALUE, orderBy))
+    ? R.descend<AudioFile>(R.propOr(Number.MAX_VALUE, orderBy))
+    : R.ascend<AudioFile>(R.propOr(Number.MAX_VALUE, orderBy))
 
-interface IColumn {
+interface Column {
     key: SortProp
     label: string
     numeric: boolean
@@ -42,12 +42,12 @@ interface IColumn {
     orderFormatted?: boolean
 }
 
-interface ISoundsTableToolbarProps {
+interface SoundsTableToolbarProps {
     onUploadSounds: (files: FileList) => void
     onDownloadSounds: () => void
 }
 
-const SoundsTableToolbar: React.FC<ISoundsTableToolbarProps> = (props) => {
+const SoundsTableToolbar: React.FC<SoundsTableToolbarProps> = (props) => {
     const { onUploadSounds, onDownloadSounds } = props
     return (
         <Toolbar
@@ -97,14 +97,14 @@ const SoundsTableToolbar: React.FC<ISoundsTableToolbarProps> = (props) => {
     )
 }
 
-interface ISoundsTableHeaderProps {
-    columns: readonly IColumn[]
+interface SoundsTableHeaderProps {
+    columns: readonly Column[]
     order: Order
     orderBy: string
-    onSort: (column: IColumn) => void
+    onSort: (column: Column) => void
 }
 
-const SoundsTableHeader: React.FC<ISoundsTableHeaderProps> = ({ columns, order, orderBy, onSort }) => (
+const SoundsTableHeader: React.FC<SoundsTableHeaderProps> = ({ columns, order, orderBy, onSort }) => (
     <TableHead >
         <TableRow >
             {columns.map((column) => (
@@ -130,18 +130,18 @@ const SoundsTableHeader: React.FC<ISoundsTableHeaderProps> = ({ columns, order, 
     </TableHead>
 )
 
-interface ISoundsTableProps {
-    rows: IAudioFile[]
-    members: IDictionary<IGuildMember>
+interface SoundsTableProps {
+    rows: AudioFile[]
+    members: Dictionary<GuildMember>
     onUploadSounds: (files: FileList) => void
     onDownloadSounds: () => void
-    onPlaySound: (audioFile: IAudioFile) => void
-    onDownloadSound: (audioFile: IAudioFile) => void
-    onEditSound: (audioFile: IAudioFile) => void
-    onDeleteSound: (audioFile: IAudioFile) => void
+    onPlaySound: (audioFile: AudioFile) => void
+    onDownloadSound: (audioFile: AudioFile) => void
+    onEditSound: (audioFile: AudioFile) => void
+    onDeleteSound: (audioFile: AudioFile) => void
 }
 
-const SoundsTable: React.FC<ISoundsTableProps> = (props) => {
+const SoundsTable: React.FC<SoundsTableProps> = (props) => {
     const { rows, members, onUploadSounds, onDownloadSounds, onPlaySound, onDownloadSound, onEditSound, onDeleteSound } = props
 
     const [order, setOrder] = useState<Order>('asc')
@@ -151,7 +151,7 @@ const SoundsTable: React.FC<ISoundsTableProps> = (props) => {
 
     const getUsername = (userId: string | null) => userId ? R.pathOr('-', [userId, 'name'], members) : ''
 
-    const columns: readonly IColumn[] = [
+    const columns: readonly Column[] = [
         {
             key: 'name',
             label: 'Name',
@@ -196,7 +196,7 @@ const SoundsTable: React.FC<ISoundsTableProps> = (props) => {
         }
     ]
 
-    const handleSort = (column: IColumn) => {
+    const handleSort = (column: Column) => {
         const isAsc = orderBy === column.key && order === 'asc'
         setOrder(isAsc ? 'desc' : 'asc')
         setOrderBy(column.key)

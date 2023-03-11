@@ -1,19 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import * as R from 'ramda'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Paper, TextField } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
-import { useSnackbar } from 'notistack'
-import { Navigate } from 'react-router-dom'
 
-import { useDispatch, useSelector } from '@/util'
-import { fetchGuildMembers } from '@/actions/user'
-import { fetchSounds, deleteSound, playSound, updateSound } from '@/actions/sounds'
-import { IAudioFile } from '@/types'
-import { selectedGuild, selectedGuildMembers } from '@/selectors/user'
+import { AudioFile } from '@/types'
 import SoundsTable from '@/components/SoundsTable'
+import useNotification from '@/hooks/useNotification'
+import useSoundsState from '@/hooks/useSoundsState'
+import { playSoundRequest } from '@/api'
+import useGuildState from '@/hooks/useGuildState'
 
-const getTags = R.pipe<[IAudioFile[]], string[], string[], string[]>(
-    R.chain<IAudioFile, string>(R.prop('tags')),
+const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
+    R.chain<AudioFile, string>(R.prop('tags')),
     R.uniq,
     R.invoker(0, 'sort')
 )
@@ -29,30 +27,14 @@ const downloadFile = (url: string) => {
     document.body.removeChild(a)
 }
 
-const uploadFiles = (guildId: string, files: FileList | null) => {
-    if (!files) return
-
-    const formData = new FormData()
-
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        formData.append(file.name, file, file.name)
-    }
-
-    return fetch(`/api/${guildId}/sounds`, {
-        method: 'POST',
-        body: formData
-    })
-}
-
-interface IDeleteDialogProps {
+interface DeleteDialogProps {
     open: boolean
-    audioFile: IAudioFile | null
+    audioFile: AudioFile | null
     onCancel: () => void
     onOk: () => void
 }
 
-const DeleteDialog: React.FC<IDeleteDialogProps> = (props) => {
+const DeleteDialog: React.FC<DeleteDialogProps> = (props) => {
     const { open, audioFile, onCancel, onOk } = props
     return (
         <Dialog
@@ -76,17 +58,17 @@ const DeleteDialog: React.FC<IDeleteDialogProps> = (props) => {
     )
 }
 
-interface IEditDialogProps {
+interface EditDialogProps {
     open: boolean
-    audioFile: IAudioFile | null
+    audioFile: AudioFile | null
     tags: string[]
     onCancel: () => void
     onOk: (values: EditValues) => void
 }
 
-type EditValues = Pick<IAudioFile, 'name' | 'tags'>
+type EditValues = Pick<AudioFile, 'name' | 'tags'>
 
-const EditDialog: React.FC<IEditDialogProps> = (props) => {
+const EditDialog: React.FC<EditDialogProps> = (props) => {
     const { open, audioFile, tags, onCancel, onOk } = props
 
     const [values, setValues] = useState<EditValues | null>(null)
@@ -143,37 +125,24 @@ const EditDialog: React.FC<IEditDialogProps> = (props) => {
 }
 
 const Admin: React.FC = () => {
+    const { sounds, deleteSound, updateSound, uploadSounds } = useSoundsState()
+    const { selectedGuildId, guildMembers } = useGuildState()
 
-    const sounds = useSelector((state) => state.sounds.sounds)
-
-    const guild = useSelector(selectedGuild)
-    const guildMembers = useSelector(selectedGuildMembers)
-
-    const dispatch = useDispatch()
-
-    const { enqueueSnackbar } = useSnackbar()
-
-    useEffect(() => {
-        guild && dispatch(fetchSounds(guild.id))
-        guild && dispatch(fetchGuildMembers(guild.id))
-    }, [guild])
+    const { notification, errorNotification } = useNotification()
 
     const [deleteModalVisible, setDeleteModalVisible] = useState(false)
     const [editModalVisible, setEditModalVisible] = useState(false)
-    const [selectedAudioFile, setSelectedAudioFile] = useState<IAudioFile | null>(null)
+    const [selectedAudioFile, setSelectedAudioFile] = useState<AudioFile | null>(null)
 
-    const onEditAudioFile = (audioFile: IAudioFile) => {
+    const onEditAudioFile = (audioFile: AudioFile) => {
         setSelectedAudioFile(audioFile)
         setEditModalVisible(true)
     }
 
-    const onDeleteAudioFile = (audioFile: IAudioFile) => {
+    const onDeleteAudioFile = (audioFile: AudioFile) => {
         setSelectedAudioFile(audioFile)
         setDeleteModalVisible(true)
     }
-
-    if (!guild) return null
-    if (!guild.isAdmin) return <Navigate to='/' replace />
 
     const membersById = R.indexBy(R.prop('id'), guildMembers || [])
     const tags = useMemo(() => getTags(sounds), [sounds])
@@ -185,7 +154,7 @@ const Admin: React.FC = () => {
                 audioFile={selectedAudioFile}
                 onCancel={() => setDeleteModalVisible(false)}
                 onOk={() => {
-                    selectedAudioFile && dispatch(deleteSound(selectedAudioFile.guildId, selectedAudioFile.name))
+                    selectedAudioFile && deleteSound(selectedAudioFile.name)
                         .then(() => setDeleteModalVisible(false))
                 }}
             />
@@ -199,7 +168,7 @@ const Admin: React.FC = () => {
                         return
                     }
                     const updated = { ...selectedAudioFile, name, tags }
-                    dispatch(updateSound(selectedAudioFile.guildId, selectedAudioFile.name, updated))
+                    updateSound(updated)
                         .then(() => setEditModalVisible(false))
                 }}
             />
@@ -208,13 +177,13 @@ const Admin: React.FC = () => {
                     rows={sounds}
                     members={membersById}
                     onUploadSounds={(files) => {
-                        uploadFiles(guild.id, files)
-                            ?.then(() => enqueueSnackbar(`Successfully uploaded ${files.length} sounds`, { variant: 'success' }))
-                            .then(() => dispatch(fetchSounds(guild.id)))
-                            .catch((err) => enqueueSnackbar('Failed to upload files: ' + err.message, { variant: 'error' }))
+                        uploadSounds(files)
+                            .then(() => notification(`Successfully uploaded ${files.length} sounds`))
+                            .catch((err) => errorNotification(`Failed to upload files: ${err.message}`))
                     }}
-                    onDownloadSounds={() => downloadZip(guild.id)}
-                    onPlaySound={(audioFile) => dispatch(playSound(audioFile.guildId, audioFile.name))}
+                    onDownloadSounds={() => selectedGuildId && downloadZip(selectedGuildId)}
+                    onPlaySound={(audioFile) => playSoundRequest(audioFile.guildId, audioFile.name)
+                        .catch((err) => errorNotification(`Failed to play sound: ${err.message}`))}
                     onDownloadSound={(audioFile) => downloadSound(audioFile.guildId, audioFile.name)}
                     onEditSound={onEditAudioFile}
                     onDeleteSound={onDeleteAudioFile}

@@ -19,10 +19,8 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import WbSunnyIcon from '@mui/icons-material/WbSunny'
 import NightsStayIcon from '@mui/icons-material/NightsStay'
-
-import { useSelector, useDispatch } from '@/util'
-import { selectGuild } from '@/actions/user'
-import { selectedGuild } from '@/selectors/user'
+import useUserState from '@/hooks/useUserState'
+import useGuildState from '@/hooks/useGuildState'
 
 interface HeaderProps {
     darkMode: boolean
@@ -30,19 +28,18 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = (props) => {
-    const user = useSelector((state) => state.user.userInfo)
-    const guild = useSelector(selectedGuild)
+    const { userInfo, isAdmin } = useUserState()
 
     return (<>
         <Toolbar disableGutters>
             <Container sx={{ flexBasis: 0 }}>
                 <Avatar
-                    alt={user?.name || 'U'}
-                    src={user?.avatarUrl || undefined}
+                    alt={userInfo?.name || 'U'}
+                    src={userInfo?.avatarUrl || undefined}
                 />
             </Container>
             <Container component='nav'>
-                {!!guild?.isAdmin &&
+                {isAdmin &&
                     <>
                         <Link
                             component={NavLink}
@@ -97,14 +94,10 @@ const Header: React.FC<HeaderProps> = (props) => {
     </>)
 }
 
-
 const GuildSelector: React.FC = () => {
-    const guild = useSelector(selectedGuild)
-    const guilds = useSelector((state) => state.user.guilds)
+    const { guilds, selectedGuild, setSelectedGuildId } = useGuildState()
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-
-    const dispatch = useDispatch()
 
     const handleClickAvatar = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget)
@@ -115,7 +108,7 @@ const GuildSelector: React.FC = () => {
     }
 
     const handleSelectGuild = (event: React.MouseEvent<HTMLElement>) => {
-        dispatch(selectGuild(event.currentTarget.id))
+        setSelectedGuildId(event.currentTarget.id)
         handleClose()
     }
 
@@ -126,10 +119,10 @@ const GuildSelector: React.FC = () => {
                     mr: 1,
                 }
             }}>
-                <Tooltip title={guild?.name || ''}>
+                <Tooltip title={selectedGuild?.name || ''}>
                     <Avatar
-                        alt={guild?.name || 'G'}
-                        src={guild?.iconUrl || undefined}
+                        alt={selectedGuild?.name || 'G'}
+                        src={selectedGuild?.iconUrl || undefined}
                     />
                 </Tooltip>
                 <IconButton
@@ -149,7 +142,7 @@ const GuildSelector: React.FC = () => {
                         key={id}
                         id={id}
                         onClick={handleSelectGuild}
-                        selected={guild?.id === id}
+                        selected={selectedGuild?.id === id}
                     >
                         <ListItemAvatar>
                             <Avatar

@@ -10,21 +10,18 @@ import { createTheme, ThemeOptions, ThemeProvider } from '@mui/material/styles'
 import { styled } from '@mui/system'
 import { deepmerge } from '@mui/utils'
 
-import { useDispatch, useSelector, fetchGetJson } from '@/util'
-import { selectedGuild } from '@/selectors/user'
-import { fetchUser, fetchGuilds } from '@/actions/user'
-import { fetchSettings } from '@/actions/settings'
-
 import Soundboard from '@/components/Soundboard'
 import Admin from '@/components/Admin'
 import NotFound from '@/components/NotFound'
 import Login from '@/components/Login'
 import { Header } from '@/components/layout'
-import Notifier from '@/components/Notifier'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import useUserState from '@/hooks/useUserState'
+import { pingRequest } from '@/api'
+import useNotifier from '@/hooks/useNotifier'
 
 // From Webpack define plugin
-declare var VERSION: string | undefined
+declare const VERSION: string | undefined
 
 const Layout = styled(Box)<BoxProps>(({ theme }) => ({
     width: 'auto',
@@ -104,24 +101,17 @@ const App: React.FC = () => {
         [darkMode]
     )
 
-    const dispatch = useDispatch()
+    const { loginPending, loggedIn, isAdmin } = useUserState()
 
-    const loggedIn = useSelector((state) => state.user.loggedIn)
-    const loginPending = useSelector((state) => state.user.loginPending)
-    const guild = useSelector(selectedGuild)
-
-    const isAdmin = !!guild?.isAdmin
+    useNotifier()
 
     const location = useLocation()
 
     useEffect(() => {
         if (location.pathname !== '/login') {
-            dispatch(fetchUser())
-            dispatch(fetchGuilds())
-            dispatch(fetchSettings())
-            setInterval(() => fetchGetJson('api/ping'), 5 * 60 * 1000)
+            setInterval(() => pingRequest(), 5 * 60 * 1000)
         }
-    }, [])
+    }, [location.pathname])
 
     return (
         <ThemeProvider theme={theme}>
@@ -132,7 +122,6 @@ const App: React.FC = () => {
                 minHeight='100vh'
             >
                 <CssBaseline />
-                <Notifier />
                 <Routes>
                     <Route path='login' element={<Login />} />
                     <Route element={
