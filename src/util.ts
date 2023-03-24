@@ -1,17 +1,22 @@
-export type JsonResponse<E = void> = ({
+export type JsonResponse<T = void> = SuccessResponse<T> | ErrorResponse
+
+export interface SuccessResponse<T = void> {
     headers: Headers
     status: number
     statusText: string
-} & ({
     ok: true
-    json: E
-} | {
-    ok: false
-    json: ErrorResponse | null
-})
-)
+    json: T
+}
 
-interface ErrorResponse {
+export interface ErrorResponse {
+    headers: Headers
+    status: number
+    statusText: string
+    ok: false
+    json: ErrorJson | null
+}
+
+interface ErrorJson {
     field: string
     message: string
     stack?: string
@@ -34,11 +39,13 @@ export const fetchJson = async <E>(url: string, init?: RequestInit): Promise<Jso
     }
 }
 
-export const buildQueryString = (params: { [key: string]: any | any[] }) =>
+type QueryParam = string | number | boolean
+
+export const buildQueryString = (params: { [key: string]: QueryParam | QueryParam[] | undefined }) =>
     Object
         .keys(params)
-        .filter(key => Array.isArray(params[key]) ? params[key].length : params[key] !== undefined)
+        .filter(key => Array.isArray(params[key]) ? (params[key] as QueryParam[]).length : params[key] !== undefined)
         .map(key => Array.isArray(params[key]) ?
-            params[key].map((val: any) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&') :
-            `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+            (params[key] as QueryParam[]).map((val: QueryParam) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&') :
+            `${encodeURIComponent(key)}=${encodeURIComponent(params[key] as QueryParam)}`
         ).join('&')

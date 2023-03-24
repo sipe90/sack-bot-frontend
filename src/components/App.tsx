@@ -1,38 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
+import React, { useMemo } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
-import AppBar from '@mui/material/AppBar'
-import Box, { BoxProps } from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 import { createTheme, ThemeOptions, ThemeProvider } from '@mui/material/styles'
-import { styled } from '@mui/system'
 import { deepmerge } from '@mui/utils'
 
-import Soundboard from '@/components/Soundboard'
-import Admin from '@/components/Admin'
 import NotFound from '@/components/NotFound'
 import Login from '@/components/Login'
-import { Header } from '@/components/layout'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import useUserState from '@/hooks/useUserState'
-import { pingRequest } from '@/api'
-import useNotifier from '@/hooks/useNotifier'
+import MainContent from '@/routes/MainContent'
+import useDarkMode from '@/hooks/useDarkMode'
+import BoardRoute from '@/routes/BoardRoute'
+import AdminRoute from '@/routes/AdminRoute'
 
-// From Webpack define plugin
-declare const VERSION: string | undefined
-
-const Layout = styled(Box)<BoxProps>(({ theme }) => ({
-    width: 'auto',
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up(1200)]: {
-        width: 1200,
-        marginLeft: 'auto',
-        marginRight: 'auto',
-    }
-}))
 
 const baseTheme: ThemeOptions = {
     palette: {
@@ -89,29 +68,13 @@ const darkTheme: ThemeOptions = {
 }
 
 const App: React.FC = () => {
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-    const lsSetting = localStorage.getItem('darkMode')
 
-    const [darkMode, setDarkMode] = useState(lsSetting === null ? prefersDarkMode : lsSetting === 'true')
-
-    useEffect(() => localStorage.setItem('darkMode', darkMode ? 'true' : 'false'), [darkMode])
+    const [darkMode] = useDarkMode()
 
     const theme = useMemo(
         () => createTheme(deepmerge(baseTheme, darkMode ? darkTheme : lightTheme)),
         [darkMode]
     )
-
-    const { loginPending, loggedIn, isAdmin } = useUserState()
-
-    useNotifier()
-
-    const location = useLocation()
-
-    useEffect(() => {
-        if (location.pathname !== '/login') {
-            setInterval(() => pingRequest(), 5 * 60 * 1000)
-        }
-    }, [location.pathname])
 
     return (
         <ThemeProvider theme={theme}>
@@ -124,46 +87,10 @@ const App: React.FC = () => {
                 <CssBaseline />
                 <Routes>
                     <Route path='login' element={<Login />} />
-                    <Route element={
-                        <>
-                            <AppBar position='sticky' color='default' elevation={2}>
-                                <Container maxWidth='lg' disableGutters>
-                                    <Header darkMode={darkMode} onDarkModeChange={setDarkMode} />
-                                </Container>
-                            </AppBar>
-                            <Layout component='main' flex={1}>
-                                {loginPending ?
-                                    <Box sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        mt: 4,
-                                        '& > *': {
-                                            m: 1,
-                                        }
-                                    }}>
-                                        <CircularProgress />
-                                        <Typography>
-                                            Loading SackBot..
-                                        </Typography>
-                                    </Box> : loggedIn ?
-                                        <Outlet /> : <Navigate to='login' />
-                                }
-                            </Layout>
-                            <Layout component='footer'>
-                                <Typography variant='body2' color='textSecondary' align='center' sx={(theme) => ({
-                                    borderTop: `1px solid ${theme.palette.divider}`,
-                                    mt: 8,
-                                    py: 3
-                                })}>
-                                    Sackbot {VERSION ? `v${VERSION}` : ''}
-                                </Typography>
-                            </Layout>
-                        </>
-                    }>
+                    <Route element={<MainContent />}>
                         <Route index element={<Navigate replace to='board' />} />
-                        <Route path='board' element={<Soundboard />} />
-                        <Route path='admin' element={isAdmin ? <Admin /> : <NotFound />} />
+                        <Route path='board' element={<BoardRoute />} />
+                        <Route path='admin' element={<AdminRoute />} />
                         <Route path='*' element={<NotFound />} />
                     </Route>
                 </Routes>

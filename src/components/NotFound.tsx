@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
 
-import sackbotImg_alt from '@/public/img/Sackbot_V9001.png'
+const sackbotImg_alt = '/img/Sackbot_V9001.png'
 
 
 const NotFound: React.FC = () => (

@@ -14,6 +14,7 @@ const mimeTypes = {
   '.js': 'application/javascript',
   '.png': 'image/x-png',
   '.txt': 'text/plain',
+  '.svg': 'image/svg+xml'
 }
 
 const getMimeType = (url) => {

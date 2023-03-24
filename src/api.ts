@@ -1,22 +1,39 @@
+import { Ok, Err, Result } from 'ts-results'
+
 import { AudioFile, Guild, GuildMember, Settings, UserInfo } from '@/types'
-import { buildQueryString, fetchJson, JsonResponse } from '@/util'
+import { buildQueryString, ErrorResponse, fetchJson, JsonResponse } from '@/util'
+
+export class ApiError extends Error {
+
+    status: number
+    statusText: string
+
+    field: string | undefined
+    serverStack: string | undefined
+
+    constructor(response: ErrorResponse) {
+        super(response.json?.message)
+
+        this.status = response.status
+        this.statusText = response.statusText
+
+        this.serverStack = response.json?.stack
+        this.field = response.json?.field
+    }
+}
 
 // User
 
 export const getUserInfoRequest = () =>
     getRequest<UserInfo>('/api/me')
 
+// Guild
+
 export const getGuildsRequest = () =>
     getRequest<Guild[]>('/api/guilds')
 
 export const getGuildMembersRequest = (guildId: string) =>
     getRequest<GuildMember[]>(`/api/${guildId}/members`)
-
-export const setEntrySoundRequest = (guildId: string, name?: string) =>
-    putRequest(`/api/${guildId}/sounds/entry?${buildQueryString({ name })}`)
-
-export const setExitSoundRequest = (guildId: string, name?: string) =>
-    putRequest(`/api/${guildId}/sounds/exit?${buildQueryString({ name })}`)
 
 // Settings
 
@@ -31,10 +48,10 @@ export const getSoundsRequest = (guildId: string) =>
 export const playSoundRequest = (guildId: string, name: string, vol?: number) =>
     postRequest(`/api/${guildId}/sounds/${name}/play?${buildQueryString({ vol })}`)
 
-export const playRandomSoundRequest = (guildId: string, vol: number, tags: string[] = []) =>
+export const playRandomSoundRequest = (guildId: string, vol?: number, tags: string[] = []) =>
     postRequest(`/api/${guildId}/sounds/rnd?${buildQueryString({ tags, vol })}`)
 
-export const playUrlRequest = (guildId: string, url: string, vol: number) =>
+export const playUrlRequest = (guildId: string, url: string, vol?: number) =>
     postRequest(`/api/${guildId}/sounds/url?${buildQueryString({ url, vol })}`)
 
 export const updateSoundRequest = (guildId: string, name: string, audioFile: AudioFile) =>
@@ -43,18 +60,22 @@ export const updateSoundRequest = (guildId: string, name: string, audioFile: Aud
 export const deleteSoundRequest = (guildId: string, name: string) =>
     deleteRequest(`/api/${guildId}/sounds/${name}`)
 
+export const setEntrySoundRequest = (guildId: string, name?: string) =>
+    putRequest(`/api/${guildId}/sounds/entry?${buildQueryString({ name })}`)
+
+export const setExitSoundRequest = (guildId: string, name?: string) =>
+    putRequest(`/api/${guildId}/sounds/exit?${buildQueryString({ name })}`)
+
 export const uploadSoundsRequest = (guildId: string, files: FileList) => {
     const formData = new FormData()
-
     for (let i = 0; i < files.length; i++) {
         const file = files[i]
         formData.append(file.name, file, file.name)
     }
 
-    return fetch(`/api/${guildId}/sounds`, {
-        method: 'POST',
+    return apiRequest(() => fetchJson(`/api/${guildId}/sounds`, {
         body: formData
-    })
+    }))
 }
 
 // Other
@@ -62,26 +83,17 @@ export const uploadSoundsRequest = (guildId: string, files: FileList) => {
 export const pingRequest = () => getRequest('api/ping')
 
 
-const apiRequest = async <T = void>(call: () => Promise<JsonResponse<T>>, opts?: ApiRequestOpts) => {
+const apiRequest = async <T>(call: () => Promise<JsonResponse<T>>): Promise<Result<T, ApiError>> => {
     const res = await call()
     if (res.ok) {
-        return res.json
-    } else {
-        const error = new Error(res.json?.message || res.statusText)
-        if (res.status !== 401) {
-            opts?.onError && opts?.onError(error)
-        }
-        throw error
+        return Ok(res.json)
     }
+    return Err(new ApiError(res))
 }
 
-interface ApiRequestOpts {
-    onError?: (err: Error) => void
-}
+const getRequest = <E = void>(url: string) => apiRequest(() => fetchJson<E>(url))
 
-const getRequest = <E = void>(url: string, opts?: ApiRequestOpts) => apiRequest(() => fetchJson<E>(url), opts)
-
-interface PostRequestOpts extends ApiRequestOpts {
+interface PostRequestOpts {
     body?: object | string
 }
 
@@ -91,7 +103,7 @@ const postRequest = <E = void>(url: string, opts?: PostRequestOpts) => apiReques
     method: 'POST'
 }))
 
-interface PutRequestOpts extends ApiRequestOpts {
+interface PutRequestOpts {
     body?: object | string
 }
 
@@ -101,5 +113,4 @@ const putRequest = <E = void>(url: string, opts?: PutRequestOpts) => apiRequest(
     method: 'PUT'
 }))
 
-const deleteRequest = <E = void>(url: string, opts?: ApiRequestOpts) => apiRequest(() => fetchJson<E>(url, { method: 'DELETE' }), opts)
-
+const deleteRequest = <E = void>(url: string) => apiRequest(() => fetchJson<E>(url, { method: 'DELETE' }))

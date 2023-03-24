@@ -1,4 +1,4 @@
-import { getGuildMembersRequest, getGuildsRequest, setEntrySoundRequest, setExitSoundRequest } from '@/api'
+import { getGuildMembersRequest, getGuildsRequest } from '@/api'
 import { Guild, GuildMember, Membership } from '@/types'
 import { atom, DefaultValue, selector } from 'recoil'
 import { userState } from './user'
@@ -7,7 +7,7 @@ export const guildsState = atom<Guild[]>({
     key: 'guilds',
     default: selector({
         key: 'guildsStateLoader',
-        get: () => getGuildsRequest()
+        get: () => getGuildsRequest().then((result) => result.unwrap())
     })
 })
 
@@ -23,7 +23,7 @@ export const guildMembersState = selector<GuildMember[]>({
         if (guildId === null) {
             return []
         }
-        return getGuildMembersRequest(guildId)
+        return getGuildMembersRequest(guildId).then((result) => result.unwrap())
     }
 })
 
@@ -41,6 +41,7 @@ export const selectedGuildMembershipState = selector<Membership | null>({
     key: 'selectedGuildMembership',
     get: ({ get }) => {
         const userInfo = get(userState)
+        if (userInfo === null) return null
         const selectedGuildId = get(selectedGuildIdState)
         return userInfo.memberships.find((m) => m.guildId === selectedGuildId) || null
     }
@@ -52,14 +53,13 @@ export const entrySoundState = selector<string | null>({
         const selectedGuildMembership = get(selectedGuildMembershipState)
         return selectedGuildMembership?.entrySound || null
     },
-    set: async ({ get, set }, newValue) => {
+    set: ({ get, set }, newValue) => {
         if (newValue instanceof DefaultValue) return
         const guildId = get(selectedGuildIdState)
-        if (guildId === null) {
+        const userInfo = get(userState)
+        if (guildId === null || userInfo === null) {
             return
         }
-        await setEntrySoundRequest(guildId, newValue || undefined)
-        const userInfo = get(userState)
         set(userState, {
             ...userInfo,
             memberships: userInfo.memberships.map((m) =>
@@ -72,16 +72,15 @@ export const exitSoundState = selector<string | null>({
     key: 'exitSound',
     get: ({ get }) => {
         const selectedGuildMembership = get(selectedGuildMembershipState)
-        return selectedGuildMembership?.entrySound || null
+        return selectedGuildMembership?.exitSound || null
     },
-    set: async ({ get, set }, newValue) => {
+    set: ({ get, set }, newValue) => {
         if (newValue instanceof DefaultValue) return
         const guildId = get(selectedGuildIdState)
-        if (guildId === null) {
+        const userInfo = get(userState)
+        if (guildId === null || userInfo === null) {
             return
         }
-        await setExitSoundRequest(guildId, newValue || undefined)
-        const userInfo = get(userState)
         set(userState, {
             ...userInfo,
             memberships: userInfo.memberships.map((m) =>

@@ -13,7 +13,7 @@ export const guildSoundsState = atom<AudioFile[]>({
             if (guildId === null) {
                 return []
             }
-            return getSoundsRequest(guildId)
+            return getSoundsRequest(guildId).then((result) => result.unwrap())
         }
     })
 })

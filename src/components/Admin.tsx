@@ -7,7 +7,6 @@ import { AudioFile } from '@/types'
 import SoundsTable from '@/components/SoundsTable'
 import useNotification from '@/hooks/useNotification'
 import useSoundsState from '@/hooks/useSoundsState'
-import { playSoundRequest } from '@/api'
 import useGuildState from '@/hooks/useGuildState'
 
 const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
@@ -17,7 +16,7 @@ const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
 )
 
 const downloadZip = (guildId: string) => downloadFile(`/api/${guildId}/sounds/export`)
-const downloadSound = (guildId: string, name: string) => downloadFile(`/api/${guildId}/sounds/${name}/download`)
+const downloadSound = ({ guildId, name }: AudioFile) => downloadFile(`/api/${guildId}/sounds/${name}/download`)
 
 const downloadFile = (url: string) => {
     const a = document.createElement('a')
@@ -125,10 +124,10 @@ const EditDialog: React.FC<EditDialogProps> = (props) => {
 }
 
 const Admin: React.FC = () => {
-    const { sounds, deleteSound, updateSound, uploadSounds } = useSoundsState()
+    const { sounds, deleteSound, updateSound, uploadSounds, playSound } = useSoundsState()
     const { selectedGuildId, guildMembers } = useGuildState()
 
-    const { notification, errorNotification } = useNotification()
+    const { notification } = useNotification()
 
     const [deleteModalVisible, setDeleteModalVisible] = useState(false)
     const [editModalVisible, setEditModalVisible] = useState(false)
@@ -179,12 +178,10 @@ const Admin: React.FC = () => {
                     onUploadSounds={(files) => {
                         uploadSounds(files)
                             .then(() => notification(`Successfully uploaded ${files.length} sounds`))
-                            .catch((err) => errorNotification(`Failed to upload files: ${err.message}`))
                     }}
                     onDownloadSounds={() => selectedGuildId && downloadZip(selectedGuildId)}
-                    onPlaySound={(audioFile) => playSoundRequest(audioFile.guildId, audioFile.name)
-                        .catch((err) => errorNotification(`Failed to play sound: ${err.message}`))}
-                    onDownloadSound={(audioFile) => downloadSound(audioFile.guildId, audioFile.name)}
+                    onPlaySound={(audioFile) => playSound(audioFile.name)}
+                    onDownloadSound={(audioFile) => downloadSound(audioFile)}
                     onEditSound={onEditAudioFile}
                     onDeleteSound={onDeleteAudioFile}
                 />

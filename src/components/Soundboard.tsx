@@ -5,7 +5,6 @@ import {
     Box,
     Button,
     CardActionArea,
-    CircularProgress,
     FormControlLabel,
     FormLabel,
     Grid,
@@ -16,15 +15,11 @@ import {
     RadioGroup,
     Slider,
     TextField,
-    Typography
 } from '@mui/material'
 
 import { AudioFile, Dictionary } from '@/types'
 import Divider from '@/components/Divider'
-import useGuildState from '@/hooks/useGuildState'
 import useSoundsState from '@/hooks/useSoundsState'
-import { playRandomSoundRequest, playSoundRequest, playUrlRequest, setEntrySoundRequest, setExitSoundRequest } from '@/api'
-
 type GroupBy = 'alphabetic' | 'tag'
 
 const isSubset = R.curry((xs: unknown[], ys: unknown[]) =>
@@ -64,21 +59,20 @@ const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
 const defVolume = 75
 
 const Soundboard: React.FC = () => {
-    const { selectedGuildId, selectedGuildMembership } = useGuildState()
-    const { sounds, soundsLoading } = useSoundsState()
+    const { sounds, entrySound, exitSound, updateEntrySound, updateExitSound, playRandomSound, playSound, playUrl } = useSoundsState()
 
     const [volume, setVolume] = useState<number>(defVolume)
     const [url, setUrl] = useState<string>('')
     const [tagFilter, setTagFilter] = useState<string[]>([])
     const [groupBy, setGroupBy] = useState<GroupBy>('alphabetic')
 
-    const onPlayRandomSound = useCallback(() => selectedGuildId && playRandomSoundRequest(selectedGuildId, volume, tagFilter), [selectedGuildId, volume, tagFilter])
-    const onPlaySound = useCallback((sound: string) => selectedGuildId && playSoundRequest(selectedGuildId, sound, volume), [selectedGuildId, volume])
-    const onPlayUrl = useCallback(() => selectedGuildId && playUrlRequest(selectedGuildId, url, volume), [selectedGuildId, url, volume])
-    const onUpdateEntrySound = useCallback((sound: string) => selectedGuildId && setEntrySoundRequest(selectedGuildId, sound), [selectedGuildId])
-    const onUpdateExitSound = useCallback((sound: string) => selectedGuildId && setExitSoundRequest(selectedGuildId, sound), [selectedGuildId])
-    const onClearEntrySound = useCallback(() => selectedGuildId && setEntrySoundRequest(selectedGuildId), [selectedGuildId])
-    const onClearExitSound = useCallback(() => selectedGuildId && setExitSoundRequest(selectedGuildId), [selectedGuildId])
+    const onPlayRandomSound = useCallback(async () => playRandomSound(volume, tagFilter), [playRandomSound, volume, tagFilter])
+    const onPlaySound = useCallback(async (sound: string) => playSound(sound, volume), [playSound, volume])
+    const onPlayUrl = useCallback(async () => playUrl(url, volume), [playUrl, url, volume])
+    const onUpdateEntrySound = useCallback((sound: string) => updateEntrySound(sound), [updateEntrySound])
+    const onUpdateExitSound = useCallback((sound: string) => updateExitSound(sound), [updateExitSound])
+    const onClearEntrySound = useCallback(() => updateEntrySound(), [updateEntrySound])
+    const onClearExitSound = useCallback(() => updateExitSound(), [updateExitSound])
 
     const tags = useMemo(() => getTags(sounds), [sounds])
 
@@ -169,33 +163,24 @@ const Soundboard: React.FC = () => {
                 <Button
                     variant='contained'
                     color='primary'
-                    onClick={onPlayRandomSound}
+                    onClick={() => onPlayRandomSound().catch()}
                 >
                     Random
                 </Button>
 
             </Grid>
-            {soundsLoading ?
-                <Box display='flex' flexDirection='column' alignItems='center' m={8}>
-                    <CircularProgress sx={{ mb: 2 }} />
-                    <Typography>
-                        Loading board...
-                    </Typography>
-                </Box>
-                :
-                <Board
-                    sounds={sounds}
-                    groupBy={groupBy}
-                    tagFilter={tagFilter}
-                    entrySound={selectedGuildMembership?.entrySound || null}
-                    exitSound={selectedGuildMembership?.exitSound || null}
-                    onPlaySound={onPlaySound}
-                    onUpdateEntrySound={onUpdateEntrySound}
-                    onUpdateExitSound={onUpdateExitSound}
-                    onClearEntrySound={onClearEntrySound}
-                    onClearExitSound={onClearExitSound}
-                />
-            }
+            <Board
+                sounds={sounds}
+                groupBy={groupBy}
+                tagFilter={tagFilter}
+                entrySound={entrySound}
+                exitSound={exitSound}
+                onPlaySound={onPlaySound}
+                onUpdateEntrySound={onUpdateEntrySound}
+                onUpdateExitSound={onUpdateExitSound}
+                onClearEntrySound={onClearEntrySound}
+                onClearExitSound={onClearExitSound}
+            />
         </Paper>
     )
 }

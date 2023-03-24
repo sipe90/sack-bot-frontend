@@ -21,13 +21,11 @@ import WbSunnyIcon from '@mui/icons-material/WbSunny'
 import NightsStayIcon from '@mui/icons-material/NightsStay'
 import useUserState from '@/hooks/useUserState'
 import useGuildState from '@/hooks/useGuildState'
+import useDarkMode from '@/hooks/useDarkMode'
 
-interface HeaderProps {
-    darkMode: boolean
-    onDarkModeChange: (enabled: boolean) => void
-}
 
-const Header: React.FC<HeaderProps> = (props) => {
+const Header: React.FC = () => {
+    const [darkMode, setDarkMode] = useDarkMode()
     const { userInfo, isAdmin } = useUserState()
 
     return (<>
@@ -83,9 +81,9 @@ const Header: React.FC<HeaderProps> = (props) => {
             <Container sx={{ flexBasis: 0 }}>
                 <Tooltip title='Toggle dark mode'>
                     <IconButton
-                        onClick={() => props.onDarkModeChange(!props.darkMode)}
+                        onClick={() => setDarkMode(!darkMode)}
                     >
-                        {props.darkMode ? <NightsStayIcon /> : <WbSunnyIcon />}
+                        {darkMode ? <NightsStayIcon /> : <WbSunnyIcon />}
                     </IconButton>
                 </Tooltip>
             </Container>

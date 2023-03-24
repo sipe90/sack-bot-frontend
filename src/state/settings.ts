@@ -5,5 +5,5 @@ import { getSettingsRequest } from '@/api'
 
 export const settingsState = selector<Settings>({
     key: 'settings',
-    get: () => getSettingsRequest()
+    get: () => getSettingsRequest().then((result) => result.unwrap())
 })
