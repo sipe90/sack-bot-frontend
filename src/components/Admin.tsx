@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import * as R from 'ramda'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Paper, TextField } from '@mui/material'
-import Autocomplete from '@mui/material/Autocomplete'
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete'
 
 import { AudioFile } from '@/types'
 import SoundsTable from '@/components/SoundsTable'
@@ -66,11 +66,19 @@ interface EditDialogProps {
 }
 
 type EditValues = Pick<AudioFile, 'name' | 'tags'>
+interface TagOption {
+    title: string
+    inputValue: string
+}
+
+const filter = createFilterOptions<TagOption>()
 
 const EditDialog: React.FC<EditDialogProps> = (props) => {
     const { open, audioFile, tags, onCancel, onOk } = props
 
     const [values, setValues] = useState<EditValues | null>(null)
+
+    const tagOptions: TagOption[] = useMemo(() => tags.map((t) => ({ title: t, inputValue: t })), [tags])
 
     return (
         <Dialog
@@ -97,12 +105,41 @@ const EditDialog: React.FC<EditDialogProps> = (props) => {
                     variant='outlined'
                     margin='normal'
                 />
-                <Autocomplete<string, true>
+                <Autocomplete<TagOption, true, false, true>
                     multiple
+                    freeSolo
                     size='small'
-                    options={tags}
+                    options={tagOptions}
+                    filterOptions={(options, params) => {
+                        const { inputValue } = params
+
+                        const filtered = filter(options, params)
+                        const isExisting = options.some((option) => inputValue === option.inputValue)
+
+                        if (inputValue !== '' && !isExisting) {
+                            filtered.push({
+                                inputValue,
+                                title: `Add "${inputValue}"`,
+                            })
+                        }
+
+                        return filtered
+                    }}
                     value={values?.tags || []}
-                    onChange={(_event, tags) => values && setValues({ ...values, tags })}
+                    onChange={(_event, tagOptions) => {
+                        const tags = tagOptions.map((t) => (typeof t === 'string') ? t : t.inputValue)
+                        values && setValues({ ...values, tags })
+                    }}
+                    getOptionLabel={(option) => {
+                        if (typeof option === 'string') {
+                            return option
+                        }
+                        if (option.inputValue) {
+                            return option.inputValue
+                        }
+                        return option.title
+                    }}
+                    renderOption={(props, option) => <li {...props}>{option.title}</li>}
                     renderInput={(params) => (
                         <TextField
                             {...params}
