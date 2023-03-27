@@ -37,7 +37,7 @@ fs.readFile(indexFile, (err, index) => {
     console.error('Cound not load index.html from ' + indexFile)
     process.exit(1)
   }
-  http.createServer((req, res) => {
+  const server = http.createServer((req, res) => {
     const file = baseFolder + req.url
     fs.readFile(file, (err, data) => {
       if (err) {
@@ -52,5 +52,11 @@ fs.readFile(indexFile, (err, index) => {
       writeResponse(res, data, headers)
     })
   }).listen(port)
+
+  process.on('SIGINT', () => {
+    console.log('Received SIGINT, closing server')
+    server.close()
+  })
+
   console.log('Server listening at port ' + port)
 })
