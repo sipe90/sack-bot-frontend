@@ -1,12 +1,11 @@
 import { AppBar, CircularProgress, Typography } from '@mui/material'
-import { Container, Box, BoxProps } from '@mui/system'
+import { Container, Box, BoxProps, styled } from '@mui/system'
 import React, { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
-import { styled } from '@mui/system'
+import { Outlet } from 'react-router-dom'
 
 import { Header } from '@/components/layout'
 import { pingRequest } from '@/api'
-import useLoginState from '@/hooks/useLoginState'
+import useEvents from '@/hooks/useEvents'
 
 const Layout = styled(Box)<BoxProps>(({ theme }) => ({
     width: 'auto',
@@ -20,21 +19,10 @@ const Layout = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const MainContent: React.FC = () => {
-    const navigate = useNavigate()
-
-    const { loggedIn, loginPending } = useLoginState()
-
-    useEffect(() => {
-        if (!loginPending && !loggedIn) {
-            navigate('/login')
-        }
-    }, [loggedIn, loginPending, navigate])
-
+    useEvents()
     useEffect(() => {
         setInterval(() => pingRequest(), 5 * 60 * 1000)
     })
-
-    if (!loggedIn && !loginPending) return null
 
     return (
         <>

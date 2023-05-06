@@ -19,7 +19,12 @@ export default defineConfig({
         proxy: {
             '^/(oauth2|login/oauth2|logout|api)': {
                 target: 'http://localhost:8080',
-                xfwd: true
+                xfwd: true,
+            },
+            '^/(ws)': {
+                target: 'ws://localhost:8080',
+                xfwd: true,
+                ws: true
             }
         },
     }

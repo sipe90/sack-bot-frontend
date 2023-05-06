@@ -11,6 +11,7 @@ import MainContent from '@/routes/MainContent'
 import useDarkMode from '@/hooks/useDarkMode'
 import BoardRoute from '@/routes/BoardRoute'
 import AdminRoute from '@/routes/AdminRoute'
+import ProtectedRoute from '@/routes/ProtectedRoute'
 
 
 const baseTheme: ThemeOptions = {
@@ -87,11 +88,13 @@ const App: React.FC = () => {
                 <CssBaseline />
                 <Routes>
                     <Route path='login' element={<Login />} />
-                    <Route element={<MainContent />}>
-                        <Route index element={<Navigate replace to='board' />} />
-                        <Route path='board' element={<BoardRoute />} />
-                        <Route path='admin' element={<AdminRoute />} />
-                        <Route path='*' element={<NotFound />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route element={<MainContent />}>
+                            <Route index element={<Navigate replace to='board' />} />
+                            <Route path='board' element={<BoardRoute />} />
+                            <Route path='admin' element={<AdminRoute />} />
+                            <Route path='*' element={<NotFound />} />
+                        </Route>
                     </Route>
                 </Routes>
             </Box>
