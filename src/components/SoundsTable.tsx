@@ -242,10 +242,10 @@ const SoundsTable: React.FC<SoundsTableProps> = (props) => {
                                         tabIndex={-1}
                                         key={row.name}
                                     >
-                                        {columns.map((column, idx) => {
+                                        {columns.map((column) => {
                                             const v = row[column.key]
                                             const val = column.format ? column.format(v) : v
-                                            return (<TableCell key={String(idx)}>{val}</TableCell>)
+                                            return (<TableCell key={column.key}>{val}</TableCell>)
                                         })}
                                         <TableCell>
                                             <Box

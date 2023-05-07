@@ -12,7 +12,7 @@ export class ApiError extends Error {
     serverStack: string | undefined
 
     constructor(response: ErrorResponse) {
-        super(response.json?.message || response.statusText)
+        super(response.json?.message ?? response.statusText)
 
         this.status = response.status
         this.statusText = response.statusText
@@ -68,8 +68,7 @@ export const setExitSoundRequest = (guildId: string, name?: string) =>
 
 export const uploadSoundsRequest = (guildId: string, files: FileList) => {
     const formData = new FormData()
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i]
+    for (const file of files) {
         formData.append(file.name, file, file.name)
     }
 

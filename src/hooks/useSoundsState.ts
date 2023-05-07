@@ -51,7 +51,7 @@ const useSoundsState = () => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
         api.updateEntrySound(selectedGuildId, sound)
-            .then((result) => result.map(() => setEntrySound(sound || null)))
+            .then((result) => result.map(() => setEntrySound(sound ?? null)))
     }, [api, selectedGuildId, setEntrySound])
 
     const updateExitSound = useCallback(async (sound?: string) => {
@@ -59,7 +59,7 @@ const useSoundsState = () => {
 
         const result = await api.updateExitSound(selectedGuildId, sound)
         if (result.ok) {
-            setExitSound(sound || null)
+            setExitSound(sound ?? null)
         }
     }, [api, selectedGuildId, setExitSound])
 
