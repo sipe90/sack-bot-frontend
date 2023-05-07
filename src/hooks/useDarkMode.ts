@@ -1,11 +1,19 @@
+import { darkModeState } from '@/state/settings'
 import { useMediaQuery } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useRecoilState } from 'recoil'
 
 const useDarkMode = () => {
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
     const lsSetting = localStorage.getItem('darkMode')
 
-    const [darkMode, setDarkMode] = useState(lsSetting === null ? prefersDarkMode : lsSetting === 'true')
+    const [darkMode, setDarkMode] = useRecoilState(darkModeState)
+
+    useEffect(() => {
+        if (darkMode === null) {
+            setDarkMode(lsSetting === null ? prefersDarkMode : lsSetting === 'true')
+        }
+    })
 
     useEffect(() => localStorage.setItem('darkMode', darkMode ? 'true' : 'false'), [darkMode])
 
