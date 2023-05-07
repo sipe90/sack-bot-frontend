@@ -20,6 +20,7 @@ import {
 import { AudioFile, Dictionary } from '@/types'
 import Divider from '@/components/Divider'
 import useSoundsState from '@/hooks/useSoundsState'
+import VoiceState from '@/components/VoiceState'
 type GroupBy = 'alphabetic' | 'tag'
 
 const isSubset = R.curry((xs: unknown[], ys: unknown[]) =>
@@ -89,99 +90,102 @@ const Soundboard: React.FC = () => {
     }
 
     return (
-        <Paper sx={{ p: 4 }}>
-            <Grid container spacing={4}>
-                <Grid xs={12} sm={6}>
-                    <FormLabel component='legend'>Group sounds</FormLabel>
-                    <RadioGroup row value={groupBy} onChange={onGroupByChange}>
-                        <FormControlLabel
-                            value='alphabetic'
-                            control={<Radio color='primary' />}
-                            label='Alphabetically'
-                            labelPlacement='start'
-                        />
-                        <FormControlLabel
-                            value='tag'
-                            control={<Radio color='primary' />}
-                            label='By Tag'
-                            labelPlacement='start'
-                        />
-                    </RadioGroup>
-                </Grid>
-                <Grid xs={12} sm={6}>
-                    <Autocomplete<string, true>
-                        multiple
-                        size='small'
-                        options={tags}
-                        value={tagFilter}
-                        onChange={onTagFilterChange}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label='Filter by tags'
-
+        <>
+            <VoiceState />
+            <Paper sx={{ pr: 4, pb: 4, pl: 4, pt: 2 }}>
+                <Grid container>
+                    <Grid xs={12} sm={6}>
+                        <FormLabel component='legend'>Group sounds</FormLabel>
+                        <RadioGroup row value={groupBy} onChange={onGroupByChange}>
+                            <FormControlLabel
+                                value='alphabetic'
+                                control={<Radio color='primary' />}
+                                label='Alphabetically'
+                                labelPlacement='start'
                             />
-                        )}
-                    />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                    <FormLabel component='legend'>Volume</FormLabel>
-                    <Slider
-                        defaultValue={defVolume}
-                        min={1}
-                        max={100}
-                        valueLabelDisplay='auto'
-                        onChangeCommitted={(_event, vol) => setVolume(vol as number)}
-                    />
-                </Grid>
-                <Grid container xs={12} sm={6} spacing={2} alignItems='flex-end'>
-                    <Grid xs={10}>
-                        <TextField
+                            <FormControlLabel
+                                value='tag'
+                                control={<Radio color='primary' />}
+                                label='By Tag'
+                                labelPlacement='start'
+                            />
+                        </RadioGroup>
+                    </Grid>
+                    <Grid xs={12} sm={6}>
+                        <Autocomplete<string, true>
+                            multiple
                             size='small'
-                            value={url}
-                            onChange={onUrlFieldChange}
-                            fullWidth
-                            label='Play from URL'
-                        />
+                            options={tags}
+                            value={tagFilter}
+                            onChange={onTagFilterChange}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label='Filter by tags'
 
+                                />
+                            )}
+                        />
                     </Grid>
-                    <Grid xs={2}>
-                        <Button
-                            fullWidth
-                            size='medium'
-                            variant='contained'
-                            color='primary'
-                            onClick={onPlayUrl}
-                        >
-                            Play
-                        </Button>
+                    <Grid xs={12} sm={6}>
+                        <FormLabel component='legend'>Volume</FormLabel>
+                        <Slider
+                            defaultValue={defVolume}
+                            min={1}
+                            max={100}
+                            valueLabelDisplay='auto'
+                            onChangeCommitted={(_event, vol) => setVolume(vol as number)}
+                        />
+                    </Grid>
+                    <Grid container xs={12} sm={6} spacing={2} alignItems='flex-end'>
+                        <Grid xs={10}>
+                            <TextField
+                                size='small'
+                                value={url}
+                                onChange={onUrlFieldChange}
+                                fullWidth
+                                label='Play from URL'
+                            />
+
+                        </Grid>
+                        <Grid xs={2}>
+                            <Button
+                                fullWidth
+                                size='medium'
+                                variant='contained'
+                                color='primary'
+                                onClick={onPlayUrl}
+                            >
+                                Play
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Grid>
-            <Divider sx={{ my: 4 }} />
-            <Grid container justifyContent='center'>
-                <Button
-                    variant='contained'
-                    color='primary'
-                    onClick={() => onPlayRandomSound().catch()}
-                >
-                    Random
-                </Button>
+                <Divider sx={{ my: 4 }} />
+                <Grid container justifyContent='center'>
+                    <Button
+                        variant='contained'
+                        color='primary'
+                        onClick={() => onPlayRandomSound().catch()}
+                    >
+                        Random
+                    </Button>
 
-            </Grid>
-            <Board
-                sounds={sounds}
-                groupBy={groupBy}
-                tagFilter={tagFilter}
-                entrySound={entrySound}
-                exitSound={exitSound}
-                onPlaySound={onPlaySound}
-                onUpdateEntrySound={onUpdateEntrySound}
-                onUpdateExitSound={onUpdateExitSound}
-                onClearEntrySound={onClearEntrySound}
-                onClearExitSound={onClearExitSound}
-            />
-        </Paper>
+                </Grid>
+                <Board
+                    sounds={sounds}
+                    groupBy={groupBy}
+                    tagFilter={tagFilter}
+                    entrySound={entrySound}
+                    exitSound={exitSound}
+                    onPlaySound={onPlaySound}
+                    onUpdateEntrySound={onUpdateEntrySound}
+                    onUpdateExitSound={onUpdateExitSound}
+                    onClearEntrySound={onClearEntrySound}
+                    onClearExitSound={onClearExitSound}
+                />
+            </Paper>
+        </>
     )
 }
 

@@ -12,7 +12,7 @@ export class ApiError extends Error {
     serverStack: string | undefined
 
     constructor(response: ErrorResponse) {
-        super(response.json?.message)
+        super(response.json?.message || response.statusText)
 
         this.status = response.status
         this.statusText = response.statusText

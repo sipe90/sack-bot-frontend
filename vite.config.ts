@@ -17,12 +17,8 @@ export default defineConfig({
         port: 3000,
         open: true,
         proxy: {
-            '^/(oauth2|login/oauth2|logout|api)': {
+            '^/(oauth2|login/oauth2|logout|api|ws)': {
                 target: 'http://localhost:8080',
-                xfwd: true,
-            },
-            '^/(ws)': {
-                target: 'ws://localhost:8080',
                 xfwd: true,
                 ws: true
             }

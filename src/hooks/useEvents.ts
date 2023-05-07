@@ -1,60 +1,84 @@
-import { useEffect, useRef, useState } from 'react'
-import useGuildState from './useGuildState'
+import { useRecoilState } from 'recoil'
 
-type ConnectionState = "disconnected" | "connected" | "finished"
+import { Message } from '@/types'
+import useGuildState from './useGuildState'
+import useWebSocket from './useWebSocket'
+import { guildVoiceState } from '@/state/voice'
+import { useCallback } from 'react'
+
 
 const useEvents = () => {
-    const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected")
-    const [retryTimeout, setRetryTimeOut] = useState(0)
-
-    const wsRef = useRef<WebSocket | null>(null)
 
     const { selectedGuildId } = useGuildState()
 
-    useEffect(() => {
-        if (selectedGuildId && connectionState === "disconnected") {
-            const url = `ws://localhost:3000/ws/events?guildId=${selectedGuildId}`
-            setTimeout(() => {
-                const ws = new WebSocket(url)
+    const [voiceState, setVoiceState] = useRecoilState(guildVoiceState)
 
-                const increaseTimeout = () => setRetryTimeOut(Math.max(Math.min(retryTimeout * 2, 30000), 250))
+    const url = selectedGuildId ? `ws://localhost:3000/ws/events?guildId=${selectedGuildId}` : null
 
-                ws.onopen = () => {
-                    setRetryTimeOut(0)
-                    setConnectionState("connected")
-                }
-
-                ws.onmessage = (ev) => {
-                    console.log(ev.data)
-                }
-
-                ws.onclose = (ev) => {
-                    if (!ev.wasClean) {
-                        console.error(`WebSocket connection closed unexpectedly: (${ev.code}) ${ev.reason}`)
-                        increaseTimeout()
-                        setConnectionState("disconnected")
+    const messageHandler = useCallback((message: string) => {
+        const msg: Message = JSON.parse(message)
+        console.log(msg, voiceState)
+        const { initiatorName, initiatorAvatar } = msg
+        switch (msg.type) {
+            case 'InitialVoiceState':
+                setVoiceState({
+                    ...voiceState,
+                    currentChannel: {
+                        initiatorName,
+                        initiatorAvatar,
+                        name: msg.currentChannel
                     }
-                    if (ev.code === 1008) {
-                        setConnectionState("finished")
+                })
+                break
+            case 'TrackStartEvent':
+                setVoiceState({
+                    ...voiceState,
+                    currentTrack: {
+                        initiatorName,
+                        initiatorAvatar,
+                        name: msg.track
                     }
-                }
-
-                ws.onerror = (ev) => {
-                    console.error(ev)
-                    if (connectionState === "disconnected") {
-                        increaseTimeout()
+                })
+                break
+            case 'TrackEndEvent':
+                setVoiceState({
+                    ...voiceState,
+                    currentTrack: {
+                        initiatorName,
+                        initiatorAvatar,
+                        name: null
+                    },
+                })
+                break
+            case 'VoiceChannelEvent':
+                setVoiceState({
+                    ...voiceState,
+                    currentChannel: {
+                        initiatorName,
+                        initiatorAvatar,
+                        name: msg.channelJoined
                     }
-                }
-
-                wsRef.current = ws
-            }, retryTimeout)
+                })
+                break
+            case 'VolumeChangeEvent':
+                setVoiceState({
+                    ...voiceState,
+                    currentVolume: {
+                        initiatorName,
+                        initiatorAvatar,
+                        value: msg.volume
+                    }
+                })
+                break
+            default:
+                throw new Error('Unknown message')
         }
-    }, [selectedGuildId, connectionState, retryTimeout])
+    }, [setVoiceState, voiceState])
 
-    return {
-        ws: wsRef.current,
-        connectionState
-    }
+    useWebSocket({
+        url,
+        messageHandler
+    })
 }
 
 export default useEvents
