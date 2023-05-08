@@ -18,7 +18,7 @@ export const guildVoiceState = atom<VoiceState>({
         currentVolume: {
             initiatorName: null,
             initiatorAvatar: null,
-            value: null
+            value: 75
         }
     }
 })

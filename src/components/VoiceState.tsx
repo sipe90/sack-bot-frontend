@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Avatar, Box, Unstable_Grid2 as Grid, Typography, Fade } from '@mui/material'
-import VolumeUpSharpIcon from '@mui/icons-material/VolumeUpSharp'
-import VolumeOffSharpIcon from '@mui/icons-material/VolumeOffSharp'
+import VolumeUpSharpIcon from '@mui/icons-material/VolumeUpRounded'
+import VolumeOffSharpIcon from '@mui/icons-material/VolumeOffRounded'
 import { useRecoilValue } from 'recoil'
 import { guildVoiceState } from '@/state/voice'
 import { settingsState } from '@/state/settings'
@@ -21,8 +21,8 @@ const VoiceState: React.FC = () => {
 
     return (
         <Box bgcolor={"background.paper"} paddingX={2} position={"sticky"} top={"64px"} zIndex={1000} borderBottom={1} borderRadius={"0px 0px 2px 2px"}>
-            <Grid container height={64}>
-                <Grid container spacing={1} justifyContent={"flex-start"} alignItems={"center"} flexGrow={1}>
+            <Grid container height={64} justifyContent={"space-between"}>
+                <Grid container spacing={1} justifyContent={"flex-start"} alignItems={"center"}>
                     <Grid>
                         <Avatar
                             alt={"sackbot"}
@@ -35,8 +35,8 @@ const VoiceState: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                         }}>
-                            {currentChannel.name && <VolumeUpSharpIcon />}
-                            {!currentChannel.name && <VolumeOffSharpIcon />}
+                            {currentChannel.name && <VolumeUpSharpIcon fontSize='small' />}
+                            {!currentChannel.name && <VolumeOffSharpIcon fontSize='small' />}
                         </Box>
                     </Grid>
                     <Grid>
@@ -45,28 +45,30 @@ const VoiceState: React.FC = () => {
                         </Fade>
                     </Grid>
                 </Grid>
-                <Grid container justifyContent={"center"} alignItems={"center"} flexGrow={0}>
+                <Grid container justifyContent={"center"} alignItems={"center"}>
                     <Grid>
                         <Fade in={currentTrack.name != null} timeout={{ appear: 500, enter: 300, exit: 2000 }}>
-                            <Grid container spacing={8} justifyContent={"center"} alignItems={"center"}>
-                                <Grid container spacing={1} justifyContent={"center"} alignItems={"center"}>
-                                    <Grid>
-                                        <Avatar
-                                            alt={currentTrack.initiatorName || undefined}
-                                            src={currentTrack.initiatorAvatar || undefined}
-                                            sx={{ width: 32, height: 32 }}
-                                        />
-                                    </Grid>
-                                    <Grid>
-                                        <Typography textAlign={"center"}>{currentTrack.initiatorName}</Typography>
-                                    </Grid>
-                                </Grid>
-                                <Grid>
-                                    <Typography textAlign={"center"}>{previousTrack}</Typography>
-                                </Grid>
-                            </Grid>
+                            <Typography textAlign={"center"} fontWeight={"bold"}>
+                                {previousTrack}
+                            </Typography>
                         </Fade>
                     </Grid>
+                </Grid>
+                <Grid container justifyContent={"center"} alignItems={"center"}>
+                    <Fade in={currentTrack.name != null} timeout={{ appear: 500, enter: 300, exit: 2000 }}>
+                        <Grid container spacing={1} justifyContent={"center"} alignItems={"center"}>
+                            <Grid>
+                                <Avatar
+                                    alt={currentTrack.initiatorName || undefined}
+                                    src={currentTrack.initiatorAvatar || undefined}
+                                    sx={{ width: 32, height: 32 }}
+                                />
+                            </Grid>
+                            <Grid>
+                                <Typography textAlign={"center"}>{currentTrack.initiatorName}</Typography>
+                            </Grid>
+                        </Grid>
+                    </Fade>
                 </Grid>
             </Grid>
         </Box>

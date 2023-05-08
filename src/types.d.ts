@@ -80,7 +80,7 @@ interface VoiceState {
     currentVolume: {
         initiatorName: string | null
         initiatorAvatar: string | null
-        value: number | null
+        value: number
     }
 }
 
@@ -97,6 +97,7 @@ type Message = InitialVoiceState | TrackStartEvent | TrackEndEvent | VoiceChanne
 interface InitialVoiceState extends MessageBase {
     type: 'InitialVoiceState'
     currentChannel: string | null
+    volume: number
 }
 
 interface TrackStartEvent extends MessageBase {

@@ -17,8 +17,8 @@ const useEvents = () => {
 
     const messageHandler = useCallback((message: string) => {
         const msg: Message = JSON.parse(message)
-        console.log(msg, voiceState)
         const { initiatorName, initiatorAvatar } = msg
+
         switch (msg.type) {
             case 'InitialVoiceState':
                 setVoiceState({
@@ -26,7 +26,11 @@ const useEvents = () => {
                     currentChannel: {
                         initiatorName,
                         initiatorAvatar,
-                        name: msg.currentChannel
+                        name: msg.currentChannel,
+                    },
+                    currentVolume: {
+                        ...voiceState.currentVolume,
+                        value: msg.volume
                     }
                 })
                 break
@@ -54,9 +58,10 @@ const useEvents = () => {
                 setVoiceState({
                     ...voiceState,
                     currentChannel: {
+                        ...voiceState.currentChannel,
                         initiatorName,
                         initiatorAvatar,
-                        name: msg.channelJoined
+                        name: msg.channelJoined,
                     }
                 })
                 break

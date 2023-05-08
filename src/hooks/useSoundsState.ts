@@ -81,6 +81,12 @@ const useSoundsState = () => {
         await api.playUrl(selectedGuildId, url, volume)
     }, [api, selectedGuildId])
 
+    const setVolume = useCallback(async (volume: number) => {
+        if (selectedGuildId === null) throw Error("Guild id is null")
+
+        await api.setVolume(selectedGuildId, volume)
+    }, [api, selectedGuildId])
+
     return {
         sounds,
         updateSound,
@@ -92,7 +98,8 @@ const useSoundsState = () => {
         updateExitSound,
         playRandomSound,
         playSound,
-        playUrl
+        playUrl,
+        setVolume
     }
 }
 

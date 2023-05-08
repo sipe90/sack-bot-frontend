@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import * as R from 'ramda'
 import {
     Autocomplete,
@@ -21,6 +21,9 @@ import { AudioFile, Dictionary } from '@/types'
 import Divider from '@/components/Divider'
 import useSoundsState from '@/hooks/useSoundsState'
 import VoiceState from '@/components/VoiceState'
+import { guildVoiceState } from '@/state/voice'
+import { useRecoilValue } from 'recoil'
+import useUserState from '@/hooks/useUserState'
 type GroupBy = 'alphabetic' | 'tag'
 
 const isSubset = R.curry((xs: unknown[], ys: unknown[]) =>
@@ -57,15 +60,22 @@ const getTags = R.pipe<[AudioFile[]], string[], string[], string[]>(
     R.invoker(0, 'sort')
 )
 
-const defVolume = 75
-
 const Soundboard: React.FC = () => {
-    const { sounds, entrySound, exitSound, updateEntrySound, updateExitSound, playRandomSound, playSound, playUrl } = useSoundsState()
+    const { sounds, entrySound, exitSound, updateEntrySound, updateExitSound, playRandomSound, playSound, playUrl, setVolume } = useSoundsState()
+    const { isAdmin } = useUserState()
+    const { currentVolume } = useRecoilValue(guildVoiceState)
 
-    const [volume, setVolume] = useState<number>(defVolume)
+    const volume = currentVolume.value
+
+    const [vol, setVol] = useState<number>(currentVolume.value)
     const [url, setUrl] = useState<string>('')
     const [tagFilter, setTagFilter] = useState<string[]>([])
     const [groupBy, setGroupBy] = useState<GroupBy>('alphabetic')
+
+    // Sync remote state
+    useEffect(() => {
+        setVol(volume)
+    }, [volume])
 
     const onPlayRandomSound = useCallback(async () => playRandomSound(volume, tagFilter), [playRandomSound, volume, tagFilter])
     const onPlaySound = useCallback(async (sound: string) => playSound(sound, volume), [playSound, volume])
@@ -93,7 +103,7 @@ const Soundboard: React.FC = () => {
         <>
             <VoiceState />
             <Paper sx={{ pr: 4, pb: 4, pl: 4, pt: 2 }}>
-                <Grid container>
+                <Grid container spacing={4}>
                     <Grid xs={12} sm={6}>
                         <FormLabel component='legend'>Group sounds</FormLabel>
                         <RadioGroup row value={groupBy} onChange={onGroupByChange}>
@@ -112,6 +122,21 @@ const Soundboard: React.FC = () => {
                         </RadioGroup>
                     </Grid>
                     <Grid xs={12} sm={6}>
+                        {isAdmin &&
+                            <>
+                                <FormLabel component='legend'>Volume</FormLabel>
+                                <Slider
+                                    value={vol}
+                                    min={1}
+                                    max={100}
+                                    valueLabelDisplay='auto'
+                                    onChange={(_event, v) => setVol(v as number)}
+                                    onChangeCommitted={(_event, v) => setVolume(v as number)}
+                                />
+                            </>
+                        }
+                    </Grid>
+                    <Grid xs={12} sm={6}>
                         <Autocomplete<string, true>
                             multiple
                             size='small'
@@ -122,21 +147,11 @@ const Soundboard: React.FC = () => {
                                 <TextField
                                     {...params}
                                     label='Filter by tags'
-
                                 />
                             )}
                         />
                     </Grid>
-                    <Grid xs={12} sm={6}>
-                        <FormLabel component='legend'>Volume</FormLabel>
-                        <Slider
-                            defaultValue={defVolume}
-                            min={1}
-                            max={100}
-                            valueLabelDisplay='auto'
-                            onChangeCommitted={(_event, vol) => setVolume(vol as number)}
-                        />
-                    </Grid>
+
                     <Grid container xs={12} sm={6} spacing={2} alignItems='flex-end'>
                         <Grid xs={10}>
                             <TextField

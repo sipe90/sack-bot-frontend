@@ -66,6 +66,9 @@ export const setEntrySoundRequest = (guildId: string, name?: string) =>
 export const setExitSoundRequest = (guildId: string, name?: string) =>
     putRequest(`/api/${guildId}/sounds/exit?${buildQueryString({ name })}`)
 
+export const setVolumeRequest = (guildId: string, volume: number) =>
+    putRequest(`/api/${guildId}/volume?${buildQueryString({ volume })}`)
+
 export const uploadSoundsRequest = (guildId: string, files: FileList) => {
     const formData = new FormData()
     for (const file of files) {

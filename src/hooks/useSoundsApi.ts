@@ -1,4 +1,4 @@
-import { ApiError, deleteSoundRequest, getSoundsRequest, playRandomSoundRequest, playSoundRequest, playUrlRequest, setEntrySoundRequest, setExitSoundRequest, updateSoundRequest, uploadSoundsRequest } from '@/api'
+import { ApiError, deleteSoundRequest, getSoundsRequest, playRandomSoundRequest, playSoundRequest, playUrlRequest, setEntrySoundRequest, setExitSoundRequest, setVolumeRequest, updateSoundRequest, uploadSoundsRequest } from '@/api'
 import { AudioFile } from '@/types'
 import { useCallback } from 'react'
 import { Result } from 'ts-results'
@@ -54,6 +54,11 @@ const useSoundsApi = () => {
             .then(handleErrorResult("Failed to play sound"))
         , [handleErrorResult])
 
+    const setVolume = useCallback((guildId: string, volume: number) =>
+        setVolumeRequest(guildId, volume)
+            .then(handleErrorResult("Failed to set volume"))
+        , [handleErrorResult])
+
     return {
         getSounds,
         updateSound,
@@ -63,7 +68,8 @@ const useSoundsApi = () => {
         updateExitSound,
         playRandomSound,
         playSound,
-        playUrl
+        playUrl,
+        setVolume
     }
 }
 
