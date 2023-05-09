@@ -1,6 +1,6 @@
 import React from 'react'
 
-import Soundboard from '@/components/Soundboard'
+import Soundboard from '@/components/board/SoundBoard'
 
 const BoardRoute: React.FC = () => <Soundboard />
 

@@ -20,7 +20,7 @@ const VoiceState: React.FC = () => {
     }, [currentTrack])
 
     return (
-        <Box bgcolor={"background.paper"} paddingX={2} position={"sticky"} top={"64px"} zIndex={1000} borderBottom={1} borderRadius={"0px 0px 2px 2px"}>
+        <Box bgcolor={"background.paper"} paddingX={4} position={"sticky"} top={"64px"} zIndex={1000} borderBottom={1} borderRadius={"0px 0px 2px 2px"}>
             <Grid container height={64} justifyContent={"space-between"}>
                 <Grid container spacing={1} justifyContent={"flex-start"} alignItems={"center"}>
                     <Grid>

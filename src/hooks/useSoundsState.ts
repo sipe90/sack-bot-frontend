@@ -11,95 +11,95 @@ const useSoundsState = () => {
     const [entrySound, setEntrySound] = useRecoilState(entrySoundState)
     const [exitSound, setExitSound] = useRecoilState(exitSoundState)
 
-    const api = useSoundsApi()
+    const { updateSound, deleteSound, uploadSounds, updateEntrySound, updateExitSound, playRandomSound, playSound, setVolume, playUrl, getSounds } = useSoundsApi()
 
-    const updateSound = useCallback(async (audioFile: AudioFile) => {
+    const _updateSound = useCallback(async (audioFile: AudioFile) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
         const existing = existsByName(sounds, audioFile.name)
         if (!existing) throw Error("Unknown sound " + audioFile.name)
 
-        const result = await api.updateSound(selectedGuildId, audioFile)
+        const result = await updateSound(selectedGuildId, audioFile)
         if (result.ok) {
             setSounds([...excludeSoundByName(sounds, audioFile.name), audioFile])
         }
-    }, [selectedGuildId, sounds, api, setSounds])
+    }, [selectedGuildId, sounds, updateSound, setSounds])
 
-    const deleteSound = useCallback(async (name: string) => {
+    const _deleteSound = useCallback(async (name: string) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
         const existing = existsByName(sounds, name)
         if (!existing) throw Error("Unknown sound " + name)
 
-        const result = await api.deleteSound(selectedGuildId, name)
+        const result = await deleteSound(selectedGuildId, name)
         if (result.ok) {
             setSounds(excludeSoundByName(sounds, name))
         }
-    }, [api, selectedGuildId, setSounds, sounds])
+    }, [deleteSound, selectedGuildId, setSounds, sounds])
 
-    const uploadSounds = useCallback(async (files: FileList) => {
+    const _uploadSounds = useCallback(async (files: FileList) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        const uploadResult = await api.uploadSounds(selectedGuildId, files)
+        const uploadResult = await uploadSounds(selectedGuildId, files)
         if (uploadResult.ok) {
-            const getResult = await api.getSounds(selectedGuildId)
+            const getResult = await getSounds(selectedGuildId)
             if (getResult.ok) {
                 setSounds(getResult.safeUnwrap())
             }
         }
-    }, [api, selectedGuildId, setSounds])
+    }, [getSounds, selectedGuildId, setSounds, uploadSounds])
 
-    const updateEntrySound = useCallback(async (sound?: string) => {
+    const _updateEntrySound = useCallback(async (sound?: string) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        api.updateEntrySound(selectedGuildId, sound)
+        updateEntrySound(selectedGuildId, sound)
             .then((result) => result.map(() => setEntrySound(sound ?? null)))
-    }, [api, selectedGuildId, setEntrySound])
+    }, [selectedGuildId, setEntrySound, updateEntrySound])
 
-    const updateExitSound = useCallback(async (sound?: string) => {
+    const _updateExitSound = useCallback(async (sound?: string) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        const result = await api.updateExitSound(selectedGuildId, sound)
+        const result = await updateExitSound(selectedGuildId, sound)
         if (result.ok) {
             setExitSound(sound ?? null)
         }
-    }, [api, selectedGuildId, setExitSound])
+    }, [selectedGuildId, setExitSound, updateExitSound])
 
-    const playRandomSound = useCallback(async (volume?: number, tagFilter?: string[]) => {
+    const _playRandomSound = useCallback(async (tagFilter?: string[]) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        await api.playRandomSound(selectedGuildId, volume, tagFilter)
-    }, [api, selectedGuildId])
+        await playRandomSound(selectedGuildId, tagFilter)
+    }, [playRandomSound, selectedGuildId])
 
-    const playSound = useCallback(async (sound: string, volume?: number) => {
+    const _playSound = useCallback(async (sound: string) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        await api.playSound(selectedGuildId, sound, volume)
-    }, [api, selectedGuildId])
+        await playSound(selectedGuildId, sound)
+    }, [playSound, selectedGuildId])
 
-    const playUrl = useCallback(async (url: string, volume?: number) => {
+    const _playUrl = useCallback(async (url: string) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        await api.playUrl(selectedGuildId, url, volume)
-    }, [api, selectedGuildId])
+        await playUrl(selectedGuildId, url)
+    }, [playUrl, selectedGuildId])
 
-    const setVolume = useCallback(async (volume: number) => {
+    const _setVolume = useCallback(async (volume: number) => {
         if (selectedGuildId === null) throw Error("Guild id is null")
 
-        await api.setVolume(selectedGuildId, volume)
-    }, [api, selectedGuildId])
+        await setVolume(selectedGuildId, volume)
+    }, [selectedGuildId, setVolume])
 
     return {
         sounds,
-        updateSound,
-        deleteSound,
-        uploadSounds,
         entrySound,
-        updateEntrySound,
         exitSound,
-        updateExitSound,
-        playRandomSound,
-        playSound,
-        playUrl,
-        setVolume
+        updateSound: _updateSound,
+        deleteSound: _deleteSound,
+        uploadSounds: _uploadSounds,
+        updateEntrySound: _updateEntrySound,
+        updateExitSound: _updateExitSound,
+        playRandomSound: _playRandomSound,
+        playSound: _playSound,
+        playUrl: _playUrl,
+        setVolume: _setVolume
     }
 }
 

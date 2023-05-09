@@ -4,6 +4,8 @@ interface Dictionary<A> {
     [index: string]: A
 }
 
+type GroupBy = 'alphabetic' | 'tag'
+
 interface Notification {
     key: SnackbarKey
     message: React.ReactNode

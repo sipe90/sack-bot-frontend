@@ -45,14 +45,14 @@ export const getSettingsRequest = () =>
 export const getSoundsRequest = (guildId: string) =>
     getRequest<AudioFile[]>(`/api/${guildId}/sounds`)
 
-export const playSoundRequest = (guildId: string, name: string, vol?: number) =>
-    postRequest(`/api/${guildId}/sounds/${name}/play?${buildQueryString({ vol })}`)
+export const playSoundRequest = (guildId: string, name: string) =>
+    postRequest(`/api/${guildId}/sounds/${name}/play`)
 
-export const playRandomSoundRequest = (guildId: string, vol?: number, tags: string[] = []) =>
-    postRequest(`/api/${guildId}/sounds/rnd?${buildQueryString({ tags, vol })}`)
+export const playRandomSoundRequest = (guildId: string, tags: string[] = []) =>
+    postRequest(`/api/${guildId}/sounds/rnd?${buildQueryString({ tags })}`)
 
-export const playUrlRequest = (guildId: string, url: string, vol?: number) =>
-    postRequest(`/api/${guildId}/sounds/url?${buildQueryString({ url, vol })}`)
+export const playUrlRequest = (guildId: string, url: string) =>
+    postRequest(`/api/${guildId}/sounds/url?${buildQueryString({ url })}`)
 
 export const updateSoundRequest = (guildId: string, name: string, audioFile: AudioFile) =>
     postRequest(`/api/${guildId}/sounds/${name}`, { body: audioFile })

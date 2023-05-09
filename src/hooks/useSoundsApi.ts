@@ -39,18 +39,18 @@ const useSoundsApi = () => {
             .then(handleErrorResult("Failed to set exit sound"))
         , [handleErrorResult])
 
-    const playRandomSound = useCallback((guildId: string, volume?: number, tagFilter?: string[]) =>
-        playRandomSoundRequest(guildId, volume, tagFilter)
+    const playRandomSound = useCallback((guildId: string, tagFilter?: string[]) =>
+        playRandomSoundRequest(guildId, tagFilter)
             .then(handleErrorResult("Failed to play sound"))
         , [handleErrorResult])
 
-    const playSound = useCallback((guildId: string, sound: string, volume?: number) =>
-        playSoundRequest(guildId, sound, volume)
+    const playSound = useCallback((guildId: string, sound: string) =>
+        playSoundRequest(guildId, sound)
             .then(handleErrorResult("Failed to play sound"))
         , [handleErrorResult])
 
-    const playUrl = useCallback((guildId: string, url: string, volume?: number) =>
-        playUrlRequest(guildId, url, volume)
+    const playUrl = useCallback((guildId: string, url: string) =>
+        playUrlRequest(guildId, url)
             .then(handleErrorResult("Failed to play sound"))
         , [handleErrorResult])
 
