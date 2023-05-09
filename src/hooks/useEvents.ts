@@ -85,16 +85,19 @@ const useEvents = () => {
 
     useEffect(() => {
         if (url !== null) {
+            if (ws.current) {
+                ws.current.close()
+            }
             ws.current = new WS(url)
+            ws.current.setMessageHandler(messageHandler)
+            ws.current.connect()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [url])
 
     useEffect(() => {
         if (ws.current !== null) {
             ws.current.setMessageHandler(messageHandler)
-            if (!ws.current.connected) {
-                ws.current.connect()
-            }
         }
     }, [messageHandler])
 }

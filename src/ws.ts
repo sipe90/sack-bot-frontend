@@ -50,6 +50,10 @@ class WS {
         }, this.retryTimeout)
     }
 
+    public close() {
+        this.instance?.close()
+    }
+
     private increaseTimeout() {
         this.retryTimeout = Math.max(Math.min(this.retryTimeout * 2, 30000), 250)
     }
