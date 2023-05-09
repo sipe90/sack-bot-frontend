@@ -1,10 +1,9 @@
 import { AppBar, CircularProgress, Typography } from '@mui/material'
 import { Container, Box, BoxProps, styled } from '@mui/system'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { Header } from '@/components/layout'
-import { pingRequest } from '@/api'
 import useEvents from '@/hooks/useEvents'
 
 const Layout = styled(Box)<BoxProps>(({ theme }) => ({
@@ -20,9 +19,6 @@ const Layout = styled(Box)<BoxProps>(({ theme }) => ({
 
 const MainContent: React.FC = () => {
     useEvents()
-    useEffect(() => {
-        setInterval(() => pingRequest(), 5 * 60 * 1000)
-    })
 
     return (
         <>

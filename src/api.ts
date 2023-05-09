@@ -80,10 +80,6 @@ export const uploadSoundsRequest = (guildId: string, files: FileList) => {
     }))
 }
 
-// Other
-
-export const pingRequest = () => getRequest('api/ping')
-
 
 const apiRequest = async <T>(call: () => Promise<JsonResponse<T>>): Promise<Result<T, ApiError>> => {
     const res = await call()
