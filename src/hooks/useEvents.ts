@@ -13,7 +13,8 @@ const useEvents = () => {
 
     const [voiceState, setVoiceState] = useRecoilState(guildVoiceState)
 
-    const url = selectedGuildId ? `ws://localhost:3000/ws/events?guildId=${selectedGuildId}` : null
+    const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+    const url = selectedGuildId ? `${protocol}${window.location.host}/ws/events?guildId=${selectedGuildId}` : null
 
     const messageHandler = useCallback((message: string) => {
         const msg: Message = JSON.parse(message)
