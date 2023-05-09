@@ -2,9 +2,9 @@ import { useRecoilState } from 'recoil'
 
 import { Message } from '@/types'
 import useGuildState from './useGuildState'
-import useWebSocket from './useWebSocket'
+import WS from '../ws'
 import { guildVoiceState } from '@/state/voice'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 
 const useEvents = () => {
@@ -12,6 +12,8 @@ const useEvents = () => {
     const { selectedGuildId } = useGuildState()
 
     const [voiceState, setVoiceState] = useRecoilState(guildVoiceState)
+
+    const ws = useRef<WS | null>(null)
 
     const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
     const url = selectedGuildId ? `${protocol}${window.location.host}/ws/events?guildId=${selectedGuildId}` : null
@@ -81,10 +83,20 @@ const useEvents = () => {
         }
     }, [setVoiceState, voiceState])
 
-    useWebSocket({
-        url,
-        messageHandler
-    })
+    useEffect(() => {
+        if (url !== null) {
+            ws.current = new WS(url)
+        }
+    }, [url])
+
+    useEffect(() => {
+        if (ws.current !== null) {
+            ws.current.setMessageHandler(messageHandler)
+            if (!ws.current.connected) {
+                ws.current.connect()
+            }
+        }
+    }, [messageHandler])
 }
 
 export default useEvents
