@@ -4,11 +4,9 @@ import VolumeUpSharpIcon from '@mui/icons-material/VolumeUpRounded'
 import VolumeOffSharpIcon from '@mui/icons-material/VolumeOffRounded'
 import { useRecoilValue } from 'recoil'
 import { guildVoiceState } from '@/state/voice'
-import { settingsState } from '@/state/settings'
 
 
 const VoiceState: React.FC = () => {
-    const { botAvatarUrl } = useRecoilValue(settingsState)
     const { currentChannel, currentTrack } = useRecoilValue(guildVoiceState)
 
     const [previousTrack, setPreviousTrack] = useState<string | null>(null)
@@ -24,19 +22,12 @@ const VoiceState: React.FC = () => {
             <Grid container height={64} justifyContent={"space-between"}>
                 <Grid container spacing={1} justifyContent={"flex-start"} alignItems={"center"}>
                     <Grid>
-                        <Avatar
-                            alt={"sackbot"}
-                            src={botAvatarUrl || undefined}
-                            sx={{ width: 32, height: 32 }}
-                        />
-                    </Grid>
-                    <Grid>
                         <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
                         }}>
-                            {currentChannel.name && <VolumeUpSharpIcon fontSize='small' />}
-                            {!currentChannel.name && <VolumeOffSharpIcon fontSize='small' />}
+                            {currentChannel.name && <VolumeUpSharpIcon fontSize='medium' />}
+                            {!currentChannel.name && <VolumeOffSharpIcon fontSize='medium' />}
                         </Box>
                     </Grid>
                     <Grid>
